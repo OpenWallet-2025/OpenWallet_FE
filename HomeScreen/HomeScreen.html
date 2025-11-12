@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Wallet</title>
+    <link rel="stylesheet" href="HomeScreen.css" />
+    <!-- _________________chart.js 로더 추가됨________________  -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!--            -->
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="top-header">
+        <div class="logo-area">
+        <span class="logo-title">Open</span>
+        <span class="logo-title bold">Wallet</span>
+        </div>
+        <div class="profile-icon"></div>
+    </header>
+
+    <!-- 메인 -->
+    <main class="content">
+        <section class="chat-summary">
+        <p class="label">소비 요약 한 줄</p>
+        <div class="bubble">이번 달 여가에 대한 지출이 너무 높아요</div>
+        </section>
+
+        <section class="summary-card">
+        <div class="summary-top">
+            <div>
+            <p class="label">이번달 지출</p>
+            <p class="amount">1,028,500<span class="unit">원</span></p>
+            </div>
+            <button class="small-btn">지출 기록 확인</button>
+        </div>
+        <p class="sub-label">예산 달성률 <span class="point">121%</span></p>
+        </section>
+
+        <section class="chart-card">
+        <p class="label">카테고리별 소비 비율</p>
+        <!-- ______________차트 영역 지우고 차트 추가됨________________-->
+        <div class="chart-wrap home-chart">
+            <canvas id="homeCategoryChart"></canvas>
+        </div>
+        <!-- _______________________________________ -->
+        </section>
+
+        <section class="emotion-card-wrap">
+        <p class="label">감정 소비 카드</p>
+        <div class="emotion-list">
+            <div class="emotion-card">
+            <p>행복 소비</p>
+            <strong>40%</strong>
+            </div>
+            <div class="emotion-card">
+            <p>스트레스 소비</p>
+            <strong>25%</strong>
+            </div>
+            <div class="emotion-card">
+            <p>무감정 소비</p>
+            <strong>35%</strong>
+            </div>
+        </div>
+        </section>
+    </main>
+
+    <!-- 슬라이드 패널 -->
+    <div id="slide-panel" class="slide-panel">
+        <div id="slide-content" class="slide-inner">
+        <!-- JS로 내용 채움 -->
+        </div>
+    </div>
+
+    <!-- 하단 내비게이션 -->
+    <nav class="bottom-nav">
+        <button class="nav-item" data-key="stats" data-label="통계 보기">
+        <div class="nav-icon">📊</div>
+        <span>통계 보기</span>
+        </button>
+        <button class="nav-item center" data-key="add" data-label="지출 추가">
+        <div class="nav-plus">＋</div>
+        <span>지출 추가</span>
+        </button>
+        <button class="nav-item" data-key="ai" data-label="AI 리포트">
+        <div class="nav-icon">AI</div>
+        <span>AI 리포트</span>
+        </button>
+    </nav>
+
+  <script src="HomeScreen.js"></script>
+</body>
+</html>

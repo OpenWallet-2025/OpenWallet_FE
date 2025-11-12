@@ -16,7 +16,7 @@ const btnSignupSubmit = document.getElementById("btn-signup-submit");
 (function boot() {
   const session = getSession();
   if (session?.userId) {
-    window.location.href = "HomeScreen.html";
+    window.location.href = "HomeScreen/HomeScreen.html";
     return;
   }
   showView(viewIntro);
@@ -111,7 +111,7 @@ btnSignupSubmit.addEventListener("click", async () => {
   saveUsers(users);
 
   setSession(id);
-  window.location.href = "HomeScreen.html";
+  window.location.href = "HomeScreen/HomeScreen.html";
 });
 
 
@@ -139,6 +139,6 @@ btnLoginSubmit.addEventListener("click", async () => {
   }
 
   setSession(id);
-  window.location.href = "HomeScreen.html";
+  window.location.href = "HomeScreen/HomeScreen.html";
 });
 
