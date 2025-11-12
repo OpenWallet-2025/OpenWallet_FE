@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Wallet - 로그인</title>
+    <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+    <div class="wrap">
+        <!-- 인트로 화면 -->
+        <section id="view-intro" class="view active">
+            <div class="logo-area">
+                <span class="logo">Open</span>
+                <span class="logo bold">Wallet</span>
+            </div>
+            <p class="subtitle">당신의 소비, 데이터를 열다</p>
+
+            <div class="intro-text">
+                <p>감정과 소비를 함께 기록하세요</p>
+                <p>AI가 당신의 소비 패턴을 분석합니다</p>
+                <p>한 눈에 보는 나의 소비 여정</p>
+            </div>
+
+            <div class="btn-row">
+                <button id="btn-go-login" class="btn btn-fill">로그인</button>
+                <button id="btn-go-signup" class="btn btn-outline">회원가입</button>
+            </div>
+        </section>
+
+        <!-- 로그인 화면 -->
+        <section id="view-login" class="view">
+            <div class="logo-area">
+                <span class="logo">Open</span>
+                <span class="logo bold">Wallet</span>
+            </div>
+            <p class="subtitle">당신의 소비, 데이터를 열다</p>
+
+            <div class="form-group">
+                <label for="login-id">아이디</label>
+                <input id="login-id" type="text" placeholder="아이디 입력" />
+            </div>
+            <div class="form-group">
+                <label for="login-pw">비밀번호</label>
+                <input id="login-pw" type="password" placeholder="비밀번호 입력" />
+            </div>
+
+            <div class="btn-row">
+                <button id="btn-login-submit" class="btn btn-fill">로그인</button>
+                <button class="btn btn-outline btn-cancel">취소</button>
+            </div>
+
+            <p class="bottom-text">
+                회원이 아니신가요?
+                <button class="link-text" id="link-go-signup">[회원가입]</button>
+            </p>
+        </section>
+
+        <!-- 회원가입 화면 -->
+        <section id="view-signup" class="view">
+            <div class="logo-area">
+                <span class="logo">Open</span>
+                <span class="logo bold">Wallet</span>
+            </div>
+            <p class="subtitle">당신의 소비, 데이터를 열다</p>
+
+            <div class="form-group">
+                <label for="signup-id">아이디</label>
+                <input id="signup-id" type="text" placeholder="아이디 입력" />
+            </div>
+            <div class="form-group">
+                <label for="signup-pw">비밀번호</label>
+                <input id="signup-pw" type="password" placeholder="비밀번호 입력" />
+            </div>
+            <div class="form-group">
+                <label for="signup-pw2">비밀번호 확인</label>
+                <input id="signup-pw2" type="password" placeholder="비밀번호 확인" />
+            </div>
+
+            <div class="btn-row">
+                <button id="btn-signup-submit" class="btn btn-fill">회원가입</button>
+                <button class="btn btn-outline btn-cancel">취소</button>
+            </div>
+
+            <p class="bottom-text">
+                이미 회원이신가요?
+                <button class="link-text" id="link-go-login">[로그인]</button>
+            </p>
+        </section>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
