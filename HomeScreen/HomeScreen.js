@@ -3,45 +3,45 @@ const recordPanel   = document.getElementById("record-panel");
 const recordContent = document.getElementById("record-content");
 const slideContent = document.getElementById("slide-content");
 const navItems = document.querySelectorAll(".nav-item");
-// ---------------------- 공통 소비 데이터 (홈 + 통계 패널 공유) ----------------------
+// ---------------------- 공통 소비 데이터 (홈 + 통계 패널 공유) 만족도 추가됨.----------------------
 // 한 달치 더미 (카테고리: 여가, 식비, 교통비, 기타)
 const TX = [
-  { date: '2025-10-10', cat: '여가', amount: 120000 },
-  { date: '2025-10-11', cat: '식비', amount: 21000 },
-  { date: '2025-10-12', cat: '교통비', amount: 18000 },
-  { date: '2025-10-13', cat: '기타', amount: 25000 },
-  { date: '2025-10-14', cat: '식비', amount: 33000 },
-  { date: '2025-10-15', cat: '여가', amount: 60000 },
-  { date: '2025-10-16', cat: '기타', amount: 15000 },
-  { date: '2025-10-17', cat: '식비', amount: 27000 },
-  { date: '2025-10-18', cat: '교통비', amount: 32000 },
-  { date: '2025-10-19', cat: '여가', amount: 45000 },
-  { date: '2025-10-20', cat: '여가', amount: 210000 },
-  { date: '2025-10-21', cat: '식비', amount: 42000 },
-  { date: '2025-10-22', cat: '교통비', amount: 26000 },
-  { date: '2025-10-23', cat: '기타', amount: 18000 },
-  { date: '2025-10-24', cat: '여가', amount: 58000 },
-  { date: '2025-10-25', cat: '식비', amount: 31000 },
-  { date: '2025-10-26', cat: '기타', amount: 22000 },
-  { date: '2025-10-27', cat: '교통비', amount: 35000 },
-  { date: '2025-10-28', cat: '식비', amount: 29000 },
-  { date: '2025-10-29', cat: '여가', amount: 76000 },
-  { date: '2025-10-30', cat: '여가', amount: 90000 },
-  { date: '2025-10-31', cat: '교통비', amount: 24000 },
-  { date: '2025-11-01', cat: '기타', amount: 20000 },
-  { date: '2025-11-02', cat: '식비', amount: 26000 },
-  { date: '2025-11-03', cat: '여가', amount: 54000 },
-  { date: '2025-11-04', cat: '교통비', amount: 21000 },
-  { date: '2025-11-05', cat: '식비', amount: 23000 },
-  { date: '2025-11-06', cat: '기타', amount: 17000 },
-  { date: '2025-11-07', cat: '교통비', amount: 20000 },
-  { date: '2025-11-08', cat: '여가', amount: 67000 },
-  { date: '2025-11-09', cat: '식비', amount: 28000 },
-  { date: '2025-11-10', cat: '기타', amount: 19000 },
-  { date: '2025-11-13', cat: '교통비', amount: 4000 },
-  { date: '2025-11-13', cat: '여가', amount: 1000 },
-  { date: '2025-11-13', cat: '식비', amount: 3000 },
-  { date: '2025-11-13', cat: '기타', amount: 3900 }
+  { date: '2025-10-10', cat: '여가', amount: 120000, score: 5 },
+  { date: '2025-10-11', cat: '식비', amount: 21000, score: 3 },
+  { date: '2025-10-12', cat: '교통비', amount: 18000, score: 2 },
+  { date: '2025-10-13', cat: '기타', amount: 25000, score: 3 },
+  { date: '2025-10-14', cat: '식비', amount: 33000, score: 5 },
+  { date: '2025-10-15', cat: '여가', amount: 60000, score: 5 },
+  { date: '2025-10-16', cat: '기타', amount: 15000, score: 4 },
+  { date: '2025-10-17', cat: '식비', amount: 27000, score: 4 },
+  { date: '2025-10-18', cat: '교통비', amount: 32000, score: 2 },
+  { date: '2025-10-19', cat: '여가', amount: 45000, score: 5 },
+  { date: '2025-10-20', cat: '여가', amount: 210000, score: 1 },
+  { date: '2025-10-21', cat: '식비', amount: 42000, score: 3 },
+  { date: '2025-10-22', cat: '교통비', amount: 26000, score: 3 },
+  { date: '2025-10-23', cat: '기타', amount: 18000, score: 4 },
+  { date: '2025-10-24', cat: '여가', amount: 58000, score: 5 },
+  { date: '2025-10-25', cat: '식비', amount: 31000, score: 2 },
+  { date: '2025-10-26', cat: '기타', amount: 22000, score: 1 },
+  { date: '2025-10-27', cat: '교통비', amount: 35000, score: 1 },
+  { date: '2025-10-28', cat: '식비', amount: 29000, score: 5 },
+  { date: '2025-10-29', cat: '여가', amount: 76000, score: 4 },
+  { date: '2025-10-30', cat: '여가', amount: 90000, score: 3 },
+  { date: '2025-10-31', cat: '교통비', amount: 24000, score: 1 },
+  { date: '2025-11-01', cat: '기타', amount: 20000, score: 2 },
+  { date: '2025-11-02', cat: '식비', amount: 26000, score: 4 },
+  { date: '2025-11-03', cat: '여가', amount: 54000, score: 5 },
+  { date: '2025-11-04', cat: '교통비', amount: 21000, score: 1 },
+  { date: '2025-11-05', cat: '식비', amount: 23000, score: 3 },
+  { date: '2025-11-06', cat: '기타', amount: 17000, score: 2 },
+  { date: '2025-11-07', cat: '교통비', amount: 20000, score: 1 },
+  { date: '2025-11-08', cat: '여가', amount: 67000, score: 4 },
+  { date: '2025-11-09', cat: '식비', amount: 28000, score: 5 },
+  { date: '2025-11-10', cat: '기타', amount: 19000, score: 3 },
+  { date: '2025-11-13', cat: '교통비', amount: 4000, score: 1 },
+  { date: '2025-11-13', cat: '여가', amount: 1000, score: 5 },
+  { date: '2025-11-13', cat: '식비', amount: 3000, score: 4 },
+  { date: '2025-11-13', cat: '기타', amount: 3900, score: 3 },
 ];
 
 // 예산(더미)
@@ -501,6 +501,61 @@ function initStatsDailyPanel() {
   });
 }
 
+
+//------------------------만족도 그래프
+let statsSatisfactionRef = null;
+
+function initStatsSatisfactionPanel() {
+  const canvas = document.createElement('canvas');
+  const container = document.querySelector('.stats-satisfaction .chart-placeholder');
+  if (!container) return;
+
+  container.innerHTML = ''; // placeholder 제거
+  container.appendChild(canvas);
+
+  const { labels, values, colors } = aggregateSatisfaction();
+  if (!labels.length) {
+    container.innerHTML = `<div style="padding:20px; color:#777;">만족도 데이터가 없습니다</div>`;
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  if (statsSatisfactionRef) statsSatisfactionRef.destroy();
+
+  statsSatisfactionRef = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '평균 만족도',
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 5,
+          ticks: { stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.raw.toFixed(1)}점`
+          }
+        }
+      }
+    }
+  });
+}
+//---------------------------------------------------------
+
 function openPanel(key, clickedBtn) {
   closeRecordPanel();
   slideContent.innerHTML = getPanelContent(key);
@@ -512,6 +567,7 @@ function openPanel(key, clickedBtn) {
   if (key === "stats") {
     initStatsCategoryPanel();
     initStatsDailyPanel();
+    initStatsSatisfactionPanel();
   }
 }
 
@@ -579,7 +635,45 @@ function renderRecordPanel() {
   }
 }
 
+//--------------지출 기록 패널 추가된거
 function openRecordPanel() {
   renderRecordPanel();
   recordPanel.classList.add('open');
+}
+
+//------------------만족도 점수 계산-----------
+function getSatisfactionColor(score) {
+  if (score >= 4 && score <= 5) return '#00d84a';      // 밝은 초록
+  if (score >= 3 && score < 4) return '#9ef01a';       // 연두빛 노랑
+  if (score >= 2 && score < 3) return '#ffe45e';       // 노랑
+  if (score >= 1 && score < 2) return '#ff5e57';       // 빨강
+  return '#cccccc'; // score가 null 등일 때
+}
+function aggregateSatisfaction() {
+  const sums = {};
+  const counts = {};
+
+  TX.forEach(t => {
+    if (t.score == null) return; // 비어있으면 제외
+
+    if (!sums[t.cat]) {
+      sums[t.cat] = 0;
+      counts[t.cat] = 0;
+    }
+    sums[t.cat] += t.score;
+    counts[t.cat] += 1;
+  });
+
+  const labels = [];
+  const values = [];
+  const colors = [];
+
+  Object.keys(sums).forEach(cat => {
+    const avg = sums[cat] / counts[cat];
+    labels.push(cat);
+    values.push(Number(avg.toFixed(2)));
+    colors.push(getSatisfactionColor(avg));
+  });
+
+  return { labels, values, colors };
 }
