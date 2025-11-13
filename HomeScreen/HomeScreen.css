@@ -15,7 +15,7 @@ body {
 /* 헤더 */
 .top-header {
     height: 56px;
-    background-color: #76f36b;
+    background-color: #76f36b; /* 너 버전 초록 유지 */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -35,7 +35,7 @@ body {
     height: 36px;
     border-radius: 50%;
     border: 1px solid black;
-    background-color: white;
+    background-color: white; /* 너 버전 */
 }
 
 /* 메인 ------------------일단 gpt로 더미만 채움. 기능 구현 예정---------------*/
@@ -75,7 +75,7 @@ body {
 /*말풍선*/
 .chat-summary .bubble {
   position: relative;
-  background-color: #a8fd9c;
+  background-color: #a8fd9c; /* 너 버전 초록 말풍선 */
   color: #111;
   border-radius: 16px;
   padding: 10px 14px;
@@ -95,7 +95,7 @@ body {
   border-width: 12px 12px 0 12px;
   transform:rotate(175deg);
   border-style: solid;
-  border-color: #a8fd9c transparent transparent transparent;
+  border-color: #a8fd9c transparent transparent transparent; /* 말풍선 색 맞춤 */
 }
 /*--------------------------------*/
 
@@ -195,7 +195,7 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   border-color: #000000;   
-  background-color: #80fc75
+  background-color: #80fc75; /* 너 버전 초록 */
 }
 
 .emotion-card:active {
@@ -267,7 +267,7 @@ body {
 
 /*선택된 패널 표시*/
 .nav-item.active {
-    background-color: #80fc75;
+    background-color: #80fc75; /* 너 버전 초록 */
     font-weight: 600;
     color: #000;
 }
@@ -408,11 +408,184 @@ body {
   height: calc(100% - 16px);
 }
 
-/*________________________________________________________________________________*/
+/*________________________________________________________________________________
+  ________________________________________________________________________________
+  ________________________________________________________________________________*/
 
 /*지출 추가*/
+.add-panel .slide-inner {
+  padding: 16px 16px 20px;
+}
+/* 상단 헤더 */
+.add-header {
+  margin: 0 0 6px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
 
-/*________________________________________________________________________________-*/
+.add-header h1 {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #000000;
+}
+
+/* 폼 전체 */
+.add-form {
+  background-color: #ffffff;
+  border-radius: 18px;
+  padding: 16px 14px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 공통 필드 */
+.add-field {
+  margin-bottom: 14px;
+}
+
+.add-label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+.add-input,
+.add-select,
+.add-textarea {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #d6d6d6;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  background-color: #fff;
+}
+
+.add-input:focus,
+.add-select:focus,
+.add-textarea:focus {
+  border-color: #111;
+}
+
+/* 날짜 필드 */
+.add-field-inline .add-date-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-date-hint {
+  font-size: 11px;
+  color: #777;
+}
+
+/* 금액 + 즐겨찾기 */
+.add-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-chip {
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid #111;
+  background-color: #f3f3f3;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* 텍스트 영역 */
+.add-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 영수증 이미지 버튼 */
+.add-receipt-row {
+  margin-top: 4px;
+}
+
+.add-receipt-btn {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px dashed #b5b5b5;
+  background-color: #fafafa;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.add-receipt-icon {
+  font-size: 18px;
+}
+
+.add-receipt-btn.uploaded {
+  border-style: solid;
+  border-color: #111;
+  background-color: #f0fff0;
+}
+
+/* 만족도 점수 */
+.add-score-wrap {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.score-btn {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #b5b5b5;
+  padding: 6px 0;
+  font-size: 13px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.score-btn.active {
+  background-color: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+/* 하단 버튼 */
+.add-actions {
+  margin-top: 4px;
+  display: flex;
+  gap: 8px;
+}
+
+.add-submit,
+.add-cancel {
+  flex: 1;
+  border-radius: 999px;
+  padding: 10px 0;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+}
+
+.add-submit {
+  background-color: #111;
+  color: #fff;
+}
+
+.add-cancel {
+  background-color: #f3f3f3;
+  color: #333;
+}
+
+/*________________________________________________________________________________
+  ________________________________________________________________________________
+  ________________________________________________________________________________*/
 
 /*AI 리포트*/
 
@@ -420,7 +593,7 @@ body {
 /*_________________________________________________________________________________ */
 
 
-/* -------------------------지출 기록 패널 추가됨 (오른쪽 슬라이드)-----------------------------*/
+/* -------------------------지출 기록 패널 (오른쪽 슬라이드)-----------------------------*/
 
 .record-panel {
   position: fixed;

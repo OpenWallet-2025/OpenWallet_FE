@@ -1,8 +1,9 @@
-const panel = document.getElementById("slide-panel");
-const recordPanel   = document.getElementById("record-panel");
+const panel        = document.getElementById("slide-panel");
+const recordPanel  = document.getElementById("record-panel");
 const recordContent = document.getElementById("record-content");
 const slideContent = document.getElementById("slide-content");
-const navItems = document.querySelectorAll(".nav-item");
+const navItems     = document.querySelectorAll(".nav-item");
+
 // ---------------------- 공통 소비 데이터 (홈 + 통계 패널 공유) 만족도 추가됨.----------------------
 // 한 달치 더미 (카테고리: 여가, 식비, 교통비, 기타)
 const TX = [
@@ -38,15 +39,14 @@ const TX = [
   { date: '2025-11-08', cat: '여가', amount: 67000, score: 4 },
   { date: '2025-11-09', cat: '식비', amount: 28000, score: 5 },
   { date: '2025-11-10', cat: '기타', amount: 19000, score: 3 },
-  { date: '2025-11-13', cat: '교통비', amount: 4000, score: 1 },
-  { date: '2025-11-13', cat: '여가', amount: 1000, score: 5 },
-  { date: '2025-11-13', cat: '식비', amount: 3000, score: 4 },
-  { date: '2025-11-13', cat: '기타', amount: 3900, score: 3 },
+  { date: '2025-11-13', cat: '교통비', amount: 4000,  score: 1 },
+  { date: '2025-11-13', cat: '여가',  amount: 1000,  score: 5 },
+  { date: '2025-11-13', cat: '식비',  amount: 3000,  score: 4 },
+  { date: '2025-11-13', cat: '기타',  amount: 3900,  score: 3 }
 ];
 
 // 예산(더미)
 const BUDGET = 850000;
-
 
 function periodStart(period) {
   const now = new Date();
@@ -73,12 +73,10 @@ function aggregateByCategory(period = 'month') {
   return { labels, values, total: values.reduce((a, b) => a + b, 0) };
 }
 
-
-// 지출 추가 시 사용 (나중에 연결)
-function addSpend(cat, amount, dateStr) {
-  TX.push({ date: dateStr, cat, amount });
+// 지출 추가 시 사용
+function addSpend(cat, amount, dateStr, score = null) {
+  TX.push({ date: dateStr, cat, amount, score });
 }
-
 
 //차트 색상 추가용 코드
 function generateColors(count) {
@@ -123,122 +121,326 @@ let activeKey = null; //현재 열린 패널 (null/ stats / add / ai)
 
 //각 패널별 내용들
 function getPanelContent(key) {
-    switch (key) {
-        //----------- -통계 보기--------------
-        case "stats":
-        return `
-            <!-- 카테고리별 소비 비율 -->
-            <section class="panel-section stats-category">
-            <div class="panel-section-title">카테고리별 소비 비율</div>
+  switch (key) {
+    //----------- 통계 보기--------------
+    case "stats":
+      return `
+        <!-- 카테고리별 소비 비율 -->
+        <section class="panel-section stats-category">
+          <div class="panel-section-title">카테고리별 소비 비율</div>
 
-            <!-- 컨트롤: 기간/차트타입 (드롭다운) -->
-            <div class="stats-controls">
-                <!-- 기간 -->
-                <div class="dropdown" data-type="period">
-                <button class="dropdown-btn" aria-expanded="false">
-                    <span class="btn-text">월별</span>
-                    <span class="arrow">▾</span>
-                </button>
-                <ul class="dropdown-menu" hidden>
-                    <li data-value="month" class="active">월별</li>
-                    <li data-value="week">주별</li>
-                    <li data-value="day">일별</li>
-                </ul>
-                </div>
-
-                <!-- 차트 타입 -->
-                <div class="dropdown" data-type="chart">
-                <button class="dropdown-btn" aria-expanded="false">
-                    <span class="btn-text">원형 차트</span>
-                    <span class="arrow">▾</span>
-                </button>
-                <ul class="dropdown-menu" hidden>
-                    <li data-value="doughnut" class="active">원형 차트</li>
-                    <li data-value="bar">막대 차트</li>
-                    <li data-value="line">꺾은선 차트</li>
-                </ul>
-                </div>
+          <!-- 컨트롤: 기간/차트타입 (드롭다운) -->
+          <div class="stats-controls">
+            <!-- 기간 -->
+            <div class="dropdown" data-type="period">
+              <button class="dropdown-btn" aria-expanded="false">
+                <span class="btn-text">월별</span>
+                <span class="arrow">▾</span>
+              </button>
+              <ul class="dropdown-menu" hidden>
+                <li data-value="month" class="active">월별</li>
+                <li data-value="week">주별</li>
+                <li data-value="day">일별</li>
+              </ul>
             </div>
 
-            <!-- 차트 캔버스 -->
-            <div class="chart-wrap">
-                <canvas id="statsCategoryChart"></canvas>
+            <!-- 차트 타입 -->
+            <div class="dropdown" data-type="chart">
+              <button class="dropdown-btn" aria-expanded="false">
+                <span class="btn-text">원형 차트</span>
+                <span class="arrow">▾</span>
+              </button>
+              <ul class="dropdown-menu" hidden>
+                <li data-value="doughnut" class="active">원형 차트</li>
+                <li data-value="bar">막대 차트</li>
+                <li data-value="line">꺾은선 차트</li>
+              </ul>
             </div>
-            </section>
+          </div>
 
-            <!-- 일별 지출 -->
-            <section class="panel-section stats-daily">
-            <div class="panel-section-title">일별 총 지출</div>
-                <div class="chart-wrap">
-                    <canvas id="statsDailyChart"></canvas>
-                </div>
-            </section>
+          <!-- 차트 캔버스 -->
+          <div class="chart-wrap">
+            <canvas id="statsCategoryChart"></canvas>
+          </div>
+        </section>
 
-            <!-- 만족도 그래프 -->
-            <section class="panel-section stats-satisfaction">
-            <div class="panel-section-title">만족도 그래프</div>
-            <div class="chart-placeholder">차트 영역</div>
-            </section>
-        `;
+        <!-- 일별 지출 -->
+        <section class="panel-section stats-daily">
+          <div class="panel-section-title">일별 총 지출</div>
+          <div class="chart-wrap">
+            <canvas id="statsDailyChart"></canvas>
+          </div>
+        </section>
 
-        //------------지출 추가---------------
-        case "add":
-        return `
-            <h1>지출 입력 패널 필요</h1>
-        `;
+        <!-- 만족도 그래프 -->
+        <section class="panel-section stats-satisfaction">
+          <div class="panel-section-title">만족도 그래프</div>
+          <div class="chart-placeholder">차트 영역</div>
+        </section>
+      `;
 
-        //-------------AI 리포트---------------
-        case "ai":
-        return `
-            <h1>AI 리포트 패널 필요</h1>
-        `;
+    //------------지출 추가 (팀원 폼 + 만족도 버튼)---------------
+    case "add":
+      return `
+        <header class="add-header">
+          <h1>지출 추가</h1>
+        </header>
 
-        default:
-        return `<div class="panel-header"><h1>패널</h1></div>`;
-    }
+        <form id="add-form" class="add-form">
+          <!-- 상품명 -->
+          <div class="add-field">
+            <label class="add-label" for="add-name">상품명</label>
+            <input
+              id="add-name"
+              type="text"
+              class="add-input"
+              placeholder="예: 아메리카노"
+            />
+          </div>
+
+          <!-- 날짜 -->
+          <div class="add-field add-field-inline">
+            <label class="add-label" for="add-date">날짜</label>
+            <div class="add-date-wrap">
+              <input
+                id="add-date"
+                type="date"
+                class="add-input"
+              />
+              <span class="add-date-hint">[직접 입력]</span>
+            </div>
+          </div>
+
+          <!-- 금액 -->
+          <div class="add-field">
+            <label class="add-label" for="add-amount">금액</label>
+            <div class="add-amount-row">
+              <input
+                id="add-amount"
+                type="number"
+                min="0"
+                class="add-input"
+                placeholder="0"
+              />
+              <button
+                type="button"
+                class="add-chip"
+                id="btn-favorite-pick"
+              >
+                즐겨찾기에서 선택
+              </button>
+            </div>
+          </div>
+
+          <!-- 카테고리 -->
+          <div class="add-field">
+            <label class="add-label" for="add-category">카테고리</label>
+            <select id="add-category" class="add-select">
+              <option value="기타" selected>기타</option>
+              <option value="여가">여가</option>
+              <option value="식비">식비</option>
+              <option value="교통비">교통비</option>
+            </select>
+          </div>
+
+          <!-- 감정 태그 -->
+          <div class="add-field">
+            <label class="add-label" for="add-emotion">감정 태그</label>
+            <select id="add-emotion" class="add-select">
+              <option value="">미선택</option>
+              <option value="행복">행복</option>
+              <option value="스트레스">스트레스</option>
+              <option value="무감정">무감정</option>
+            </select>
+          </div>
+
+          <!-- 메모 -->
+          <div class="add-field">
+            <label class="add-label" for="add-memo">메모</label>
+            <textarea
+              id="add-memo"
+              class="add-textarea"
+              rows="4"
+              placeholder="메모를 입력하세요"
+            ></textarea>
+          </div>
+
+          <!-- 영수증 이미지 자동 입력 -->
+          <div class="add-field add-receipt-row">
+            <button type="button" class="add-receipt-btn">
+              <span class="add-receipt-icon">📷</span>
+              <span class="add-receipt-text">영수증 이미지로 자동입력</span>
+            </button>
+            <input
+              id="add-receipt-input"
+              type="file"
+              accept="image/*"
+              hidden
+            />
+          </div>
+
+          <!-- 만족도 점수 -->
+          <div class="add-field">
+            <span class="add-label">만족도 점수</span>
+            <div class="add-score-wrap" id="score-group">
+              <button type="button" class="score-btn" data-score="1">1</button>
+              <button type="button" class="score-btn" data-score="2">2</button>
+              <button type="button" class="score-btn" data-score="3">3</button>
+              <button type="button" class="score-btn" data-score="4">4</button>
+              <button type="button" class="score-btn" data-score="5">5</button>
+            </div>
+            <input type="hidden" id="add-score" value="">
+          </div>
+
+          <!-- 버튼 -->
+          <div class="add-actions">
+            <button type="submit" class="add-submit">추가</button>
+            <button type="button" class="add-cancel">취소</button>
+          </div>
+        </form>
+      `;
+
+    //-------------AI 리포트---------------
+    case "ai":
+      return `
+        <h1>AI 리포트 패널 필요</h1>
+      `;
+
+    default:
+      return `<div class="panel-header"><h1>패널</h1></div>`;
+  }
 }
 
 //____________________________________________
-//패널 열기
-function openPanel(key, clickedBtn) {
-    //패널 내용 가져오기
-    slideContent.innerHTML = getPanelContent(key);
-
-    //패널에 고유 클래스 부여 (팀원별 CSS 분리용)
-    panel.className = `slide-panel open ${key}-panel`;
-
-    //현재 활성 패널 기록
-    activeKey = key;
-
-    //내비게이션 버튼 active 표시
-    navItems.forEach((btn) => {
-        btn.classList.toggle("active", btn === clickedBtn);
-    });
+// 패널 닫기
+function closePanel() {
+  panel.className = "slide-panel";
+  activeKey = null;
+  navItems.forEach((btn) => btn.classList.remove("active"));
 }
 
-//___________________________________
+// ================= 지출 추가 패널 초기화 =================
+function initAddPanel() {
+  const dateInput = document.getElementById("add-date");
+  if (dateInput && !dateInput.value) {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+  }
 
-//패널 닫기
-function closePanel() {
-    panel.className = "slide-panel";
-    activeKey = null;
-    navItems.forEach((btn) => btn.classList.remove("active"));
+  // 만족도 점수 버튼
+  const scoreBtns = document.querySelectorAll(".score-btn");
+  const hiddenScore = document.getElementById("add-score");
+  scoreBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const s = btn.dataset.score;
+      hiddenScore.value = s;
+      scoreBtns.forEach((b) => b.classList.toggle("active", b === btn));
+    });
+  });
+
+  // 영수증 이미지 업로드 버튼
+  const receiptBtn = document.querySelector(".add-receipt-btn");
+  const receiptInput = document.getElementById("add-receipt-input");
+  if (receiptBtn && receiptInput) {
+    receiptBtn.addEventListener("click", () => receiptInput.click());
+    receiptInput.addEventListener("change", () => {
+      if (receiptInput.files && receiptInput.files[0]) {
+        receiptBtn.classList.add("uploaded");
+        const textSpan = receiptBtn.querySelector(".add-receipt-text");
+        if (textSpan) textSpan.textContent = "이미지 선택 완료";
+      }
+    });
+  }
+
+  // 취소 버튼 -> 패널 닫기
+  const cancelBtn = document.querySelector(".add-cancel");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      closePanel();
+    });
+  }
+
+  // 폼 submit -> TX에 추가
+  const form = document.getElementById("add-form");
+  if (!form) return;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("add-name").value.trim();  // 현재는 TX에는 안 쓰지만 나중에 확장 가능
+    const amountVal = document.getElementById("add-amount").value;
+    const amount = Number(amountVal || 0);
+    const date = document.getElementById("add-date").value;
+    const cat = document.getElementById("add-category").value;
+    const scoreVal = document.getElementById("add-score").value;
+    const score = scoreVal ? Number(scoreVal) : null;
+
+    if (!name || !amount || !date) {
+      alert("상품명, 날짜, 금액을 모두 입력해주세요.");
+      return;
+    }
+
+    // TX 에 score 포함해서 추가
+    addSpend(cat, amount, date, score);
+
+    alert("지출이 추가되었습니다.");
+    renderHomeCategoryChart();
+
+    // 패널 닫기
+    closePanel();
+
+    // 통계/지출 기록은 다음에 열 때 새 데이터 기준으로 그림
+    // 홈화면 차트는 새로고침 시 반영
+  });
+}
+
+//____________________________________________
+//패널 열기 (통합 버전)
+function openPanel(key, clickedBtn) {
+  // 오른쪽 지출 기록 패널은 같이 닫기
+  closeRecordPanel();
+
+  //패널 내용 가져오기
+  slideContent.innerHTML = getPanelContent(key);
+
+  //패널에 고유 클래스 부여
+  panel.className = `slide-panel open ${key}-panel`;
+
+  //현재 활성 패널 기록
+  activeKey = key;
+
+  //내비게이션 버튼 active 표시
+  navItems.forEach((btn) => {
+    btn.classList.toggle("active", btn === clickedBtn);
+  });
+
+  if (key === "stats") {
+    initStatsCategoryPanel();
+    initStatsDailyPanel();
+    initStatsSatisfactionPanel();
+  }
+  if (key === "add") {
+    initAddPanel();
+  }
 }
 
 //__________________________________________
 // 버튼 클릭 이벤트
 navItems.forEach((btn) => {
-    btn.addEventListener("click", () => {
-        const key = btn.dataset.key;
-        if (activeKey === key) {
-        closePanel();
-        } else {
-        openPanel(key, btn);
-        }
-    });
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.key;
+    if (activeKey === key) {
+      closePanel();
+    } else {
+      openPanel(key, btn);
+    }
+  });
 });
 
-//------------감정 소비 카드----------추가됨//
+//------------감정 소비 카드----------
 document.querySelectorAll('.emotion-card').forEach(card => {
   card.addEventListener('click', () => {
     alert(`${card.querySelector('p').textContent}`);
@@ -253,15 +455,24 @@ if (spendDetailBtn) {
   });
 }
 
-//-----------------홈화면에 카테고리별 소비 비율 차트 -------------------추가됨//
-(function initHomeCategoryChart() {
+//-----------------홈화면에 카테고리별 소비 비율 차트 -------------------
+let homeChartRef = null;
+//-----------------홈화면에 카테고리별 소비 비율 차트 -------------------
+function renderHomeCategoryChart() {
   const canvas = document.getElementById("homeCategoryChart");
   if (!canvas || typeof Chart === "undefined") return;
 
   const { labels, values, total } = aggregateByCategory('month');
   const bgColors = generateColors(labels.length);
   const ctx = canvas.getContext("2d");
-  new Chart(ctx, {
+
+  // 기존 차트 있으면 제거
+  if (homeChartRef) {
+    homeChartRef.destroy();
+    homeChartRef = null;
+  }
+
+  homeChartRef = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels,
@@ -292,13 +503,12 @@ if (spendDetailBtn) {
     }
   });
 
-
   const amountEl  = document.querySelector(".amount");
   const percentEl = document.querySelector(".point");
   if (amountEl)  amountEl.innerHTML = `${total.toLocaleString()}<span class="unit">원</span>`;
   if (percentEl) percentEl.textContent = `${((total / BUDGET) * 100).toFixed(1)}%`;
 
-    // ---------------- 소비 요약 한 줄 갱신 추가 ----------------
+  // ---------------- 소비 요약 한 줄 갱신 ----------------
   const bubbleEl = document.querySelector('.chat-summary .bubble');
   if (bubbleEl) {
     const monthly = aggregateByCategory('month');
@@ -313,12 +523,12 @@ if (spendDetailBtn) {
       bubbleEl.textContent = '이번 달 지출 데이터가 없습니다';
     }
   }
-})();
+}
 
-//---------------------------------------------------------------------------------------------//
+// 페이지 로드 시 한 번 실행
+document.addEventListener('DOMContentLoaded', renderHomeCategoryChart);
 
 // ------------------- 통계 패널: 카테고리별 소비 비율 ------------------------
-
 let statsChartRef = null;
 
 function initStatsCategoryPanel() {
@@ -331,20 +541,20 @@ function initStatsCategoryPanel() {
   const render = (type = currentType, period = currentPeriod) => {
     const { labels, values } = aggregateByCategory(period);
     if (!values.length || values.every(v => v === 0)) {
-        const wrap = canvas.parentElement;
-        wrap.style.position = 'relative';
-        wrap.innerHTML = `
+      const wrap = canvas.parentElement;
+      wrap.style.position = 'relative';
+      wrap.innerHTML = `
         <div style="
             position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
             font-size:13px; color:#666; background:#fafafa; border-radius:12px;
         ">
-            선택한 기간에 데이터가 없습니다
+          선택한 기간에 데이터가 없습니다
         </div>`;
-        return;
+      return;
     } else {
-        const wrap = canvas.parentElement;
-        wrap.innerHTML = '';
-        wrap.appendChild(canvas);
+      const wrap = canvas.parentElement;
+      wrap.innerHTML = '';
+      wrap.appendChild(canvas);
     }
     const bgColors = generateColors(labels.length);
     const ctx = canvas.getContext("2d");
@@ -501,16 +711,53 @@ function initStatsDailyPanel() {
   });
 }
 
+//------------------------만족도 점수 계산-----------
 
-//------------------------만족도 그래프
+function getSatisfactionColor(score) {
+  if (score >= 4 && score <= 5) return '#00d84a';      // 밝은 초록
+  if (score >= 3 && score < 4) return '#9ef01a';       // 연두빛 노랑
+  if (score >= 2 && score < 3) return '#ffe45e';       // 노랑
+  if (score >= 1 && score < 2) return '#ff5e57';       // 빨강
+  return '#cccccc'; // score가 null 등일 때
+}
+
+function aggregateSatisfaction() {
+  const sums = {};
+  const counts = {};
+
+  TX.forEach(t => {
+    if (t.score == null) return; // 비어있으면 제외
+
+    if (!sums[t.cat]) {
+      sums[t.cat] = 0;
+      counts[t.cat] = 0;
+    }
+    sums[t.cat] += t.score;
+    counts[t.cat] += 1;
+  });
+
+  const labels = [];
+  const values = [];
+  const colors = [];
+
+  Object.keys(sums).forEach(cat => {
+    const avg = sums[cat] / counts[cat];
+    labels.push(cat);
+    values.push(Number(avg.toFixed(2)));
+    colors.push(getSatisfactionColor(avg));
+  });
+
+  return { labels, values, colors };
+}
+
 let statsSatisfactionRef = null;
 
 function initStatsSatisfactionPanel() {
-  const canvas = document.createElement('canvas');
   const container = document.querySelector('.stats-satisfaction .chart-placeholder');
   if (!container) return;
 
   container.innerHTML = ''; // placeholder 제거
+  const canvas = document.createElement('canvas');
   container.appendChild(canvas);
 
   const { labels, values, colors } = aggregateSatisfaction();
@@ -554,24 +801,8 @@ function initStatsSatisfactionPanel() {
     }
   });
 }
-//---------------------------------------------------------
 
-function openPanel(key, clickedBtn) {
-  closeRecordPanel();
-  slideContent.innerHTML = getPanelContent(key);
-  panel.className = `slide-panel open ${key}-panel`;
-  activeKey = key;
-  navItems.forEach((btn) => btn.classList.toggle("active", btn === clickedBtn));
-
-  
-  if (key === "stats") {
-    initStatsCategoryPanel();
-    initStatsDailyPanel();
-    initStatsSatisfactionPanel();
-  }
-}
-
-// ================== 지출 기록 패널 추가됨(오른쪽 슬라이드) ==================
+// ================== 지출 기록 패널 ==================
 
 function closeRecordPanel() {
   if (!recordPanel) return;
@@ -635,45 +866,7 @@ function renderRecordPanel() {
   }
 }
 
-//--------------지출 기록 패널 추가된거
 function openRecordPanel() {
   renderRecordPanel();
   recordPanel.classList.add('open');
-}
-
-//------------------만족도 점수 계산-----------
-function getSatisfactionColor(score) {
-  if (score >= 4 && score <= 5) return '#00d84a';      // 밝은 초록
-  if (score >= 3 && score < 4) return '#9ef01a';       // 연두빛 노랑
-  if (score >= 2 && score < 3) return '#ffe45e';       // 노랑
-  if (score >= 1 && score < 2) return '#ff5e57';       // 빨강
-  return '#cccccc'; // score가 null 등일 때
-}
-function aggregateSatisfaction() {
-  const sums = {};
-  const counts = {};
-
-  TX.forEach(t => {
-    if (t.score == null) return; // 비어있으면 제외
-
-    if (!sums[t.cat]) {
-      sums[t.cat] = 0;
-      counts[t.cat] = 0;
-    }
-    sums[t.cat] += t.score;
-    counts[t.cat] += 1;
-  });
-
-  const labels = [];
-  const values = [];
-  const colors = [];
-
-  Object.keys(sums).forEach(cat => {
-    const avg = sums[cat] / counts[cat];
-    labels.push(cat);
-    values.push(Number(avg.toFixed(2)));
-    colors.push(getSatisfactionColor(avg));
-  });
-
-  return { labels, values, colors };
 }
