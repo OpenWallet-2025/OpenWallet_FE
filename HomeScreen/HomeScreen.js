@@ -1,4 +1,6 @@
 const panel = document.getElementById("slide-panel");
+const recordPanel   = document.getElementById("record-panel");
+const recordContent = document.getElementById("record-content");
 const slideContent = document.getElementById("slide-content");
 const navItems = document.querySelectorAll(".nav-item");
 // ---------------------- 공통 소비 데이터 (홈 + 통계 패널 공유) ----------------------
@@ -108,7 +110,6 @@ function aggregateByDayLast30() {
 
   TX.forEach(t => {
     const td = new Date(t.date + 'T00:00:00');
-    // 30일 범위 안만 집계
     if (td >= days[0] && td <= base) {
       const diff = Math.round((td - days[0]) / 86400000);
       if (diff >= 0 && diff < sums.length) sums[diff] += t.amount;
@@ -243,6 +244,14 @@ document.querySelectorAll('.emotion-card').forEach(card => {
     alert(`${card.querySelector('p').textContent}`);
   });
 });
+
+// -------------"지출 기록 확인" 버튼 -> 오른쪽 슬라이드 열기
+const spendDetailBtn = document.querySelector('.summary-card .small-btn');
+if (spendDetailBtn) {
+  spendDetailBtn.addEventListener('click', () => {
+    openRecordPanel();
+  });
+}
 
 //-----------------홈화면에 카테고리별 소비 비율 차트 -------------------추가됨//
 (function initHomeCategoryChart() {
@@ -493,6 +502,7 @@ function initStatsDailyPanel() {
 }
 
 function openPanel(key, clickedBtn) {
+  closeRecordPanel();
   slideContent.innerHTML = getPanelContent(key);
   panel.className = `slide-panel open ${key}-panel`;
   activeKey = key;
@@ -503,4 +513,73 @@ function openPanel(key, clickedBtn) {
     initStatsCategoryPanel();
     initStatsDailyPanel();
   }
+}
+
+// ================== 지출 기록 패널 추가됨(오른쪽 슬라이드) ==================
+
+function closeRecordPanel() {
+  if (!recordPanel) return;
+  recordPanel.classList.remove('open');
+}
+
+// 지출 기록 패널 내용 렌더링
+function renderRecordPanel() {
+  if (!recordContent) return;
+
+  const { total } = aggregateByCategory('month');
+  const percent = ((total / BUDGET) * 100).toFixed(1);
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+  const monthTx = TX.filter(t => {
+    const d = new Date(t.date + 'T00:00:00');
+    return d >= sixMonthsAgo && d <= now;
+  }).sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  const listHtml = monthTx.length
+    ? monthTx.map(t => {
+        const [y, m, d] = t.date.split('-');
+        return `
+          <li class="record-item">
+            <div class="record-date">${Number(m)}.${Number(d)}</div>
+            <div class="record-main">
+              <div class="record-title">${t.cat} 지출</div>
+              <div class="record-amount">${t.amount.toLocaleString()}원</div>
+            </div>
+          </li>
+        `;
+      }).join('')
+    : `<li class="record-empty">이번 달 지출 기록이 없습니다</li>`;
+
+  recordContent.innerHTML = `
+    <header class="record-header">
+      <div class="record-left">
+        <button class="record-back" type="button" aria-label="뒤로가기">〈</button>
+        <div class="record-info">
+          <p class="label">이번달 지출</p>
+          <p class="record-total">${total.toLocaleString()}원</p>
+        </div>
+      </div>
+      <div class="record-percent">예산 달성률 ${percent}%</div>
+    </header>
+
+    <section>
+      <h2 class="record-section-title">지출 기록</h2>
+      <ul class="record-list">
+        ${listHtml}
+      </ul>
+    </section>
+  `;
+
+  // 뒤로가기 버튼 이벤트
+  const backBtn = recordContent.querySelector('.record-back');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      closeRecordPanel();
+    });
+  }
+}
+
+function openRecordPanel() {
+  renderRecordPanel();
+  recordPanel.classList.add('open');
 }
