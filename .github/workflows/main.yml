@@ -80,7 +80,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: OpenWallet-2025/OpenWallet_Manifest
-          token: ${{ secrets.MANIFEST_REPO_TOKEN }}
           ref: ${{ steps.branch.outputs.branch }}
   
       - name: Update Image Tag
