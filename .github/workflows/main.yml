@@ -21,7 +21,7 @@ jobs:
          uses: actions/checkout@v4
        - name: Get Commit SHA
          id: get-sha
-         run: echo "git last commit hash tage:sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+         run: echo "git last commit hash tage: ${GITHUB_SHA}"
 
 
   code-test:
@@ -89,10 +89,10 @@ jobs:
   
       - name: Update Image Tag
         run: |
-         echo "IMAGE_TAG=${{ needs.docker-build-and-push.outputs.image_tag }}" >> $GITHUB_ENV
-         sed -i '/repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s/^[[:space:]]*tag:.*/  tag: "'"${IMAGE_TAG}"'"/}' apps/frontend/values.yaml
-         # s|찾을 텍스트|바꿀 텍스트
-  
+          echo "IMAGE_TAG=${{ needs.docker-build-and-push.outputs.image_tag }}" >> $GITHUB_ENV
+          sed -i '/repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s/^[[:space:]]*tag:.*/  tag: "'"${IMAGE_TAG}"'"/}' apps/frontend/values.yaml
+           # s|찾을 텍스트|바꿀 텍스트
+      
       - name: Commit & Push
         run: |
           git config user.name "${{ github.actor }}"
