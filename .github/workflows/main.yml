@@ -89,8 +89,8 @@ jobs:
   
       - name: Update Image Tag
         run: |
-          sed -i "/repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s|^[[:space:]]*tag:.*|  tag: \"${TAG}\"|}" apps/frontend/values.yaml
-  # s|찾을 텍스트|바꿀 텍스트
+         sed -i '/repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s/^[[:space:]]*tag:.*/  tag: "'"${IMAGE_TAG}"'"/}' apps/frontend/values.yaml
+         # s|찾을 텍스트|바꿀 텍스트
   
       - name: Commit & Push
         run: |
