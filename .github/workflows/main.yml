@@ -83,8 +83,9 @@ jobs:
     
       - name: Update Image Tag
         run: |
-          echo "Updating tag to ${GITHUB_SHA}"
-          cmd: yq -i '.image.tag = "${{ GITHUB_SHA }}"' apps/frontend/values.yaml
+          NEW_TAG="${GITHUB_SHA}"
+          # 'repository:' 라인 근처에서 'tag:'를 찾도록 범위를 제한합니다.
+          sed -i '/repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s/^[[:space:]]*tag:.*/tag: "'"${NEW_TAG}"'"/}' apps/frontend/values.yaml
     
       - name: Commit & Push
         run: |
