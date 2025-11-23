@@ -84,8 +84,7 @@ jobs:
       - name: Update Image Tag
         run: |
           echo "Updating tag to ${GITHUB_SHA}"
-          sed -i "/repository:/p" apps/frontend/values.yaml
-          sed -i '/^[[:space:]]*repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s/^[[:space:]]*tag:.*/    tag: "'"${GITHUB_SHA}"'"/}' apps/frontend/values.yaml
+          cmd: yq -i '.image.tag = "${{ GITHUB_SHA }}"' apps/frontend/values.yaml
     
       - name: Commit & Push
         run: |
