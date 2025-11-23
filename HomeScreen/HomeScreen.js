@@ -526,7 +526,10 @@ function renderHomeCategoryChart() {
 }
 
 // 페이지 로드 시 한 번 실행
-document.addEventListener('DOMContentLoaded', renderHomeCategoryChart);
+document.addEventListener('DOMContentLoaded', () => {
+  renderHomeCategoryChart();
+  setupRecordDeleteHandler();
+});
 
 // ------------------- 통계 패널: 카테고리별 소비 비율 ------------------------
 let statsChartRef = null;
@@ -815,22 +818,30 @@ function renderRecordPanel() {
 
   const { total } = aggregateByCategory('month');
   const percent = ((total / BUDGET) * 100).toFixed(1);
+
   const now = new Date();
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-  const monthTx = TX.filter(t => {
-    const d = new Date(t.date + 'T00:00:00');
-    return d >= sixMonthsAgo && d <= now;
-  }).sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  const monthTx = TX
+    .map((t, idx) => ({ ...t, _idx: idx }))
+    .filter(t => {
+      const d = new Date(t.date + 'T00:00:00');
+      return d >= sixMonthsAgo && d <= now;
+    })
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const listHtml = monthTx.length
     ? monthTx.map(t => {
         const [y, m, d] = t.date.split('-');
         return `
-          <li class="record-item">
+          <li class="record-item" data-idx="${t._idx}">
             <div class="record-date">${Number(m)}.${Number(d)}</div>
             <div class="record-main">
               <div class="record-title">${t.cat} 지출</div>
-              <div class="record-amount">${t.amount.toLocaleString()}원</div>
+              <div class="record-amount-wrap">
+                <span class="record-amount">${t.amount.toLocaleString()}원</span>
+                <button type="button" class="record-delete" aria-label="삭제">🗑</button>
+              </div>
             </div>
           </li>
         `;
@@ -865,8 +876,35 @@ function renderRecordPanel() {
     });
   }
 }
-
 function openRecordPanel() {
   renderRecordPanel();
   recordPanel.classList.add('open');
+}
+
+// 지출 기록 삭제
+function setupRecordDeleteHandler() {
+  if (!recordContent) return;
+
+  recordContent.addEventListener('click', (e) => {
+    const deleteBtn = e.target.closest('.record-delete');
+    if (!deleteBtn) return;
+
+    const itemEl = deleteBtn.closest('.record-item');
+    if (!itemEl) return;
+
+    const idx = Number(itemEl.dataset.idx);
+    if (Number.isNaN(idx)) return;
+
+    const ok = window.confirm('이 지출 기록을 삭제할까요?');
+    if (!ok) return;
+
+    // TX에서 해당 항목 삭제
+    TX.splice(idx, 1);
+
+    // 홈 차트 & 요약 다시 계산
+    renderHomeCategoryChart();
+
+    // 지출 기록 패널 다시 렌더링
+    renderRecordPanel();
+  });
 }
