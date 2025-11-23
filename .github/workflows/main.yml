@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: <ORG>/<MANIFEST_REPO>
-          token: ${{ secrets.MANIFEST_REPO_TOKEN }}
+          token: ${{ secrets.MANIFEST_ACCESS }}
           ref: ${{ steps.branch.outputs.branch }} # push한 브랜치와 동일한 이름의 브랜치로 checkout
   
       - name: Update Image Tag
