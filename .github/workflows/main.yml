@@ -19,9 +19,8 @@ jobs:
     steps:
        - name: Checkout
          uses: actions/checkout@v4
-       - name: Get Commit SHA
-         id: get-sha
-         run: echo "git last commit hash tage: ${GITHUB_SHA}"
+       - name: Show LastCommit SHA
+         run: echo "git last commit hash tage:$GITHUB_SHA"
 
 
   code-test:
