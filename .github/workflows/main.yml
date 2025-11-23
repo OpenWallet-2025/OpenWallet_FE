@@ -38,8 +38,7 @@ jobs:
   docker-build-and-push:
     runs-on: ubuntu-latest
     needs: code-test
-    outputs:
-      image_tag: ${{ steps.meta.outputs.image_tag }}
+    
   
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +47,7 @@ jobs:
         id: meta
         run: |
           echo "image_tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
-          echo "Generated docker image tag: ${IMAGE_TAG}"
+          echo "Generated docker image tag: ${GITHUB_SHA}"
 
         #깃허브 패키지 레지스터리 접근
       - name: Login to Docker Registry
@@ -57,7 +56,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
+    
           
       - name: Build & Push Image
         run: |
@@ -68,6 +67,9 @@ jobs:
           
           docker push ghcr.io/${OWNER}/frontend:${{ steps.meta.outputs.image_tag }}
           echo "Build and push Docker image: ghcr.io/${OWNER}/frontend:${{ steps.meta.outputs.image_tag }}"
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
           
   update-manifest-repo:
     runs-on: ubuntu-latest
