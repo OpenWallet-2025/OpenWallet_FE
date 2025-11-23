@@ -81,8 +81,8 @@ jobs:
           token: ${{ secrets.MANIFEST_ACCESS }}
           ref: ${{ steps.branch.outputs.branch }} # push한 브랜치와 동일한 이름의 브랜치로 checkout
   
-     - name: Update Image Tag
-       run: |
+      - name: Update Image Tag
+        run: |
           echo "Updating tag to ${GITHUB_SHA}"
           sed -i "/repository:/p" apps/frontend/values.yaml
           sed -i '/^[[:space:]]*repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s/^[[:space:]]*tag:.*/    tag: "'"${GITHUB_SHA}"'"/}' apps/frontend/values.yaml
