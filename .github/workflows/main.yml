@@ -83,7 +83,7 @@ jobs:
       - name: Checkout Manifests Repo (same branch)
         uses: actions/checkout@v4
         with:
-          repository: ${{https://github.com/OpenWallet-2025/OpenWallet-manifests.git}}
+          repository: ${{ github.repository_owner }}/OpenWallet-manifests
           token: ${{ secrets.MANIFEST_ACCESS }}
           ref: ${{ steps.branch.outputs.branch }} # push한 브랜치와 동일한 이름의 브랜치로 checkout
   
