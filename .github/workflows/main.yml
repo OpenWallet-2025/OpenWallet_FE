@@ -89,7 +89,7 @@ jobs:
   
       - name: Update Image Tag
         run: |
-         echo "TAG=${{ needs.docker-build-and-push.outputs.image_tag }}" >> $GITHUB_ENV
+         echo "IMAGE_TAG=${{ needs.docker-build-and-push.outputs.image_tag }}" >> $GITHUB_ENV
          sed -i '/repository:[[:space:]]*ghcr\.io\/openwallet-2025\/frontend/{n;s/^[[:space:]]*tag:.*/  tag: "'"${IMAGE_TAG}"'"/}' apps/frontend/values.yaml
          # s|찾을 텍스트|바꿀 텍스트
   
