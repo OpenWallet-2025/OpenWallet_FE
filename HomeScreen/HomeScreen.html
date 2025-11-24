@@ -13,13 +13,18 @@
     <!-- 헤더 -->
     <header class="top-header">
         <div class="logo-area">
-        <img src="img/242942643.png" class="logo-mascot" alt="" />
-        <span class="logo-title">Open</span>
-        <span class="logo-title bold">Wallet</span>
+            <img
+                    src="img/openwallet-logo.png"
+                    alt="Open Wallet 로고"
+                    class="logo-img"
+            />
+            <span class="logo-title">Open</span>
+            <span class="logo-title bold">Wallet</span>
         </div>
-        <button class="profile-btn" onclick="location.href='Profile.html'">
-            <img src="img/profileimg.png" alt="프로필" class="profile-img">
-        </button>
+
+        <a href="Profile.html" class="profile-btn">
+            <div class="profile-icon"></div>
+        </a>
     </header>
 
     <!-- 메인 -->
@@ -50,21 +55,33 @@
         </section>
 
         <section class="emotion-card-wrap">
-        <p class="label">감정 소비 카드</p>
-        <div class="emotion-list">
-            <div class="emotion-card">
-            <p>행복 소비</p>
-            <strong>40%</strong>
+            <p class="label">감정 소비 카드</p>
+            <div class="emotion-list">
+                <div class="emotion-card">
+                    <p>행복 소비</p>
+                    <strong>40%</strong>
+                </div>
+                <div class="emotion-card">
+                    <p>들뜸 소비</p>
+                    <strong>10%</strong>
+                </div>
+                <div class="emotion-card">
+                    <p>우울 소비</p>
+                    <strong>10%</strong>
+                </div>
+                <div class="emotion-card">
+                    <p>화남 소비</p>
+                    <strong>5%</strong>
+                </div>
+                <div class="emotion-card">
+                    <p>스트레스 소비</p>
+                    <strong>25%</strong>
+                </div>
+                <div class="emotion-card">
+                    <p>무감정 소비</p>
+                    <strong>10%</strong>
+                </div>
             </div>
-            <div class="emotion-card">
-            <p>스트레스 소비</p>
-            <strong>25%</strong>
-            </div>
-            <div class="emotion-card">
-            <p>무감정 소비</p>
-            <strong>35%</strong>
-            </div>
-        </div>
         </section>
     </main>
 
@@ -97,6 +114,27 @@
         <span>AI 리포트</span>
         </button>
     </nav>
+
+    <!-- 즐겨찾기 -->
+    <div id="favorite-modal" class="favorite-modal">
+        <div class="favorite-modal-backdrop"></div>
+
+        <div class="favorite-modal-content">
+            <div class="favorite-modal-header">
+                <h3>즐겨찾기에서 선택</h3>
+                <button type="button" id="favorite-modal-close" class="favorite-close-btn">✕</button>
+            </div>
+
+            <ul id="favorite-list" class="favorite-list">
+            </ul>
+
+            <div class="favorite-modal-footer">
+                <button type="button" id="favorite-clear-btn" class="favorite-clear-btn">
+                    즐겨찾기 전체 삭제
+                </button>
+            </div>
+        </div>
+    </div>
 
   <script src="HomeScreen.js"></script>
 </body>
