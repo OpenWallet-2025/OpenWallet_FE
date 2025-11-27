@@ -4,21 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Open Wallet - 프로필</title>
-  <!-- 기존 홈 화면 CSS 그대로 재사용 -->
+  <!-- 홈 화면 CSS 재사용 -->
   <link rel="stylesheet" href="HomeScreen.css" />
 </head>
 <body>
-  <!-- 헤더 (기존 구조 + 로고 전체에 링크만 추가) -->
+  <!-- 헤더 -->
   <header class="top-header">
     <a href="HomeScreen.html" class="logo-link">
       <div class="logo-area">
-        <img src="img/242942643.png" class="logo-mascot" alt="" />
+        <img
+          src="img/openwallet-logo.png"
+          alt="Open Wallet 로고"
+          class="logo-mascot"
+        />
         <span class="logo-title">Open</span>
         <span class="logo-title bold">Wallet</span>
       </div>
     </a>
-    <button class="profile-btn" onclick="location.href='Profile.html'">
-        <img src="img/profileimg.png" alt="프로필" class="profile-img">
+
+    <!-- 프로필 페이지에서는 자기 자신이니 클릭 동작은 없음 -->
+    <button class="profile-btn" type="button">
+      <div class="profile-icon"></div>
     </button>
   </header>
 
@@ -29,6 +35,7 @@
     <section class="profile-section">
       <div class="profile-section-header">
         <h2 class="profile-section-title">내 프로필</h2>
+
         <button type="button" class="text-icon-btn">
           <img src="img/profileEdit.png" alt="" class="icon-img" />
           <span>프로필 수정</span>
@@ -38,13 +45,13 @@
       <div class="profile-info">
         <p><span class="profile-label">이름:</span> 사용자1</p>
         <p><span class="profile-label">예산 목표:</span> 850,000원</p>
-        <p><span class="profile-label">소비 유형:</span> 충동형 소비자</p>
+        <p><span class="profile-label">소비 유형:</span> 중도형 소비자</p>
       </div>
     </section>
 
     <div class="profile-divider"></div>
 
-    <!-- 즐겨찾기 -->
+    <!-- 즐겨찾기 (HEAD 쪽 내용 유지) -->
     <section class="profile-section">
       <div class="profile-section-header">
         <h2 class="profile-section-title">즐겨찾기</h2>
@@ -112,6 +119,7 @@
     </section>
 
   </main>
+
   <script src="Profile.js"></script>
 </body>
 </html>

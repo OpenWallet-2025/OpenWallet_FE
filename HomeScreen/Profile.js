@@ -1,3 +1,5 @@
+// Profile.js
+
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".toggle-group").forEach(group => {
     const buttons = group.querySelectorAll(".toggle-btn");

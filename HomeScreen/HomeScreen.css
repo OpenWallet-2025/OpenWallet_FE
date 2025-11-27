@@ -52,7 +52,21 @@ body {
     margin-left: 2px;
 }
 
-/* 프로필 버튼 바뀐거. */
+/* (팀원쪽에서 쓰던 프로필 아이콘 - 혹시 홈 화면에서 배경이미지 방식 쓸 때를 위해 남겨둠) */
+.profile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid black;
+  background-color: white;
+
+  background-image: url("img/profileimg.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 70%;
+}
+
+/* 프로필 버튼 (현재는 img 넣는 버전 사용 중) */
 .profile-btn {
   width: 32px;
   height: 32px;
@@ -186,7 +200,7 @@ body {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
-/* ------------dummy-chart 지우고 차트 추가됨 --------------*/
+/* ------------차트 영역 --------------*/
 .content .home-chart {
   margin-top: 10px;
   height: 220px;
@@ -207,9 +221,10 @@ body {
   margin-bottom: 25px;
 }
 
-/*---------수정됨 - 감정 소비 카드는 껍데기만 있음------------*/
+/* 감정 소비 카드 */
 .emotion-list {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 6px;
 }
@@ -230,7 +245,7 @@ body {
 .emotion-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  border-color: #000000;   
+  border-color: #000000;
   background-color: #80fc75;
 }
 
@@ -303,7 +318,7 @@ body {
 
 /*선택된 패널 표시*/
 .nav-item.active {
-    background-color: #80fc75; /* 너 버전 초록 */
+    background-color: #80fc75;
     font-weight: 600;
     color: #000;
 }
@@ -352,24 +367,6 @@ body {
 }
 
 /*__________________________각 패널별 내부 구역___________________________*/
-
-/*--------------------------------------------------------------------------------
-패널 개별 스타일 예시 (지출 추가는 add, AI 리포트는 ai)
-.add-panel{
-    패널 내용
-}
-.add-panel button {
-    버튼 내용
-}
-
-.ai-panel {
-    패널 내용
-}
-.ai-panel button {
-    버튼 내용
-}
-
-----------------------------------------------------------------------------------*/
 
 /* 통계 보기*/
 /* ---------------------------------통계 패널 전용 -----------------------------------*/
@@ -518,21 +515,49 @@ body {
   color: #777;
 }
 
-/* 금액 + 즐겨찾기 */
+/* (팀원쪽에서 추가한 날짜 입력 관련 스타일) */
+.add-input-date {
+  width: 80px;
+}
+
+.add-date-sep {
+  font-size: 14px;
+  color: #555;
+}
+
+/* 달력 버튼 */
+.add-date-calendar-btn {
+  border: none;
+  background-color: #f3f3f3;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* 네이티브 date input 숨김 */
+.add-date-native {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 금액 + 즐겨찾기 / 이름 / 카테고리 */
 .add-amount-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.add-chip {
-  flex-shrink: 0;
-  border-radius: 999px;
-  border: 1px solid #111;
-  background-color: #f3f3f3;
-  padding: 6px 10px;
-  font-size: 11px;
-  cursor: pointer;
+.add-name-row,
+.add-category-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* 텍스트 영역 */
@@ -590,6 +615,180 @@ body {
   background-color: #111;
   color: #fff;
   border-color: #111;
+}
+
+/* ===== 즐겨찾기 선택 모달 (팀원 코드 + 프로필 즐겨찾기와 충돌 안 나게 부모로 스코프) ===== */
+
+.favorite-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  font-size: 14px;
+}
+
+.favorite-modal.show {
+  display: flex;
+}
+
+.favorite-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.favorite-modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 360px;
+  max-height: 70vh;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  z-index: 61;
+}
+
+.favorite-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.favorite-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.favorite-close-btn {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* 여기부터는 모달 안에서만 적용되도록 부모로 스코프 */
+.favorite-modal .favorite-list {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.favorite-modal .favorite-item {
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 1px solid #e4e4e4;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.favorite-modal .favorite-item:hover {
+  background: #f6fff5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.favorite-modal .favorite-item .fav-main {
+  display: flex;
+  align-items: center;
+  padding-right: 28px;
+}
+
+.favorite-modal .fav-name {
+  font-weight: 600;
+}
+
+.favorite-modal .fav-amount {
+  font-size: 13px;
+}
+
+.favorite-modal .fav-sub {
+  font-size: 12px;
+  color: #777;
+}
+
+.favorite-modal .fav-main-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.favorite-modal .fav-delete-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.favorite-modal-footer {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.favorite-clear-btn {
+  border-radius: 999px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background: #f7f7f7;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.add-select {
+  flex: 1;
+}
+
+/* 칩 + 즐겨찾기 저장 버튼 공통 스타일 */
+.add-chip,
+.add-fav-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  border: 1px solid #111;
+  background-color: #f7f7f7;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.add-chip {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.add-fav-save-btn {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.add-fav-save-btn:hover {
+  background-color: #ececec;
 }
 
 /* 하단 버튼 */
@@ -870,41 +1069,42 @@ body {
 
 /* 이미지 아이콘 공통 스타일 */
 .icon-img {
-  width: 16px;      /* 필요하면 18~20px로 키워도 됨 */
+  width: 16px;
   height: 16px;
   display: block;
   object-fit: contain;
 }
-/* 즐겨찾기 영역 */
+
+/* 즐겨찾기 영역 (프로필 페이지용) */
 .favorite-actions {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.favorite-list {
+.profile-content .favorite-list {
   list-style: none;
   padding: 0;
   margin: 0 15px;
 }
 
-.favorite-item {
+.profile-content .favorite-item {
   margin-bottom: 10px;
 }
 
-.favorite-name {
+.profile-content .favorite-name {
   margin: 0 0 2px;
   font-size: 15px;
   font-weight: 500;
 }
 
-.favorite-meta {
+.profile-content .favorite-meta {
   margin: 0;
   font-size: 12px;
   color: #555;
 }
 
-/* 설정 영역 */
+/* 설정 영역 (프로필 페이지) */
 .setting-row {
   display: flex;
   align-items: center;
@@ -929,7 +1129,7 @@ body {
   border: none;
   background: transparent;
   padding: 4px 0;
-  width: 55px; 
+  width: 55px;
   font-size: 12px;
   cursor: pointer;
   border-radius: 999px;
@@ -941,8 +1141,5 @@ body {
 .toggle-btn-active {
   background-color: #80fc75;
 }
-
-
-
 
 /*_____________________반응형은 일반 구조 완성 후 구현 예정___________________*/

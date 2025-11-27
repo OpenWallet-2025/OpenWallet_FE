@@ -4,43 +4,43 @@ const recordContent = document.getElementById("record-content");
 const slideContent = document.getElementById("slide-content");
 const navItems     = document.querySelectorAll(".nav-item");
 
-// ---------------------- 공통 소비 데이터 (홈 + 통계 패널 공유) 만족도 추가됨.----------------------
-// 한 달치 더미 (카테고리: 여가, 식비, 교통비, 기타)
+// ---------------------- 공통 소비 데이터 (홈 + 통계 패널 공유, 만족도/감정 포함) ----------------------
+// 한 달치 더미 (카테고리: 식비, 생활, 교통비, 의료·건강, 취미·문화생활, 교육·자기계발, 의류, 기타)
 const TX = [
-  { date: '2025-10-10', cat: '여가', amount: 120000, score: 5 },
+  { date: '2025-10-10', cat: '취미·문화생활', amount: 120000, score: 5 },
   { date: '2025-10-11', cat: '식비', amount: 21000, score: 3 },
   { date: '2025-10-12', cat: '교통비', amount: 18000, score: 2 },
   { date: '2025-10-13', cat: '기타', amount: 25000, score: 3 },
   { date: '2025-10-14', cat: '식비', amount: 33000, score: 5 },
-  { date: '2025-10-15', cat: '여가', amount: 60000, score: 5 },
+  { date: '2025-10-15', cat: '취미·문화생활', amount: 60000, score: 5 },
   { date: '2025-10-16', cat: '기타', amount: 15000, score: 4 },
   { date: '2025-10-17', cat: '식비', amount: 27000, score: 4 },
   { date: '2025-10-18', cat: '교통비', amount: 32000, score: 2 },
-  { date: '2025-10-19', cat: '여가', amount: 45000, score: 5 },
-  { date: '2025-10-20', cat: '여가', amount: 210000, score: 1 },
+  { date: '2025-10-19', cat: '취미·문화생활', amount: 45000, score: 5 },
+  { date: '2025-10-20', cat: '취미·문화생활', amount: 210000, score: 1 },
   { date: '2025-10-21', cat: '식비', amount: 42000, score: 3 },
   { date: '2025-10-22', cat: '교통비', amount: 26000, score: 3 },
   { date: '2025-10-23', cat: '기타', amount: 18000, score: 4 },
-  { date: '2025-10-24', cat: '여가', amount: 58000, score: 5 },
+  { date: '2025-10-24', cat: '취미·문화생활', amount: 58000, score: 5 },
   { date: '2025-10-25', cat: '식비', amount: 31000, score: 2 },
   { date: '2025-10-26', cat: '기타', amount: 22000, score: 1 },
   { date: '2025-10-27', cat: '교통비', amount: 35000, score: 1 },
   { date: '2025-10-28', cat: '식비', amount: 29000, score: 5 },
-  { date: '2025-10-29', cat: '여가', amount: 76000, score: 4 },
-  { date: '2025-10-30', cat: '여가', amount: 90000, score: 3 },
+  { date: '2025-10-29', cat: '취미·문화생활', amount: 76000, score: 4 },
+  { date: '2025-10-30', cat: '취미·문화생활', amount: 90000, score: 3 },
   { date: '2025-10-31', cat: '교통비', amount: 24000, score: 1 },
   { date: '2025-11-01', cat: '기타', amount: 20000, score: 2 },
   { date: '2025-11-02', cat: '식비', amount: 26000, score: 4 },
-  { date: '2025-11-03', cat: '여가', amount: 54000, score: 5 },
+  { date: '2025-11-03', cat: '취미·문화생활', amount: 54000, score: 5 },
   { date: '2025-11-04', cat: '교통비', amount: 21000, score: 1 },
   { date: '2025-11-05', cat: '식비', amount: 23000, score: 3 },
   { date: '2025-11-06', cat: '기타', amount: 17000, score: 2 },
   { date: '2025-11-07', cat: '교통비', amount: 20000, score: 1 },
-  { date: '2025-11-08', cat: '여가', amount: 67000, score: 4 },
+  { date: '2025-11-08', cat: '취미·문화생활', amount: 67000, score: 4 },
   { date: '2025-11-09', cat: '식비', amount: 28000, score: 5 },
   { date: '2025-11-10', cat: '기타', amount: 19000, score: 3 },
   { date: '2025-11-13', cat: '교통비', amount: 4000,  score: 1 },
-  { date: '2025-11-13', cat: '여가',  amount: 1000,  score: 5 },
+  { date: '2025-11-13', cat: '취미·문화생활',  amount: 1000,  score: 5 },
   { date: '2025-11-13', cat: '식비',  amount: 3000,  score: 4 },
   { date: '2025-11-13', cat: '기타',  amount: 3900,  score: 3 }
 ];
@@ -73,9 +73,147 @@ function aggregateByCategory(period = 'month') {
   return { labels, values, total: values.reduce((a, b) => a + b, 0) };
 }
 
-// 지출 추가 시 사용
-function addSpend(cat, amount, dateStr, score = null) {
-  TX.push({ date: dateStr, cat, amount, score });
+// =========================================================
+// -------------------- 즐겨찾기 저장 유틸 --------------------
+const FAVORITES_KEY = "ow_favorites";
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("즐겨찾기 로드 실패", e);
+    return [];
+  }
+}
+
+function saveFavorites(list) {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.error("즐겨찾기 저장 실패", e);
+  }
+}
+
+function addFavoriteItem(name, amount, category) {
+  const list = loadFavorites();
+
+  const exists = list.some(
+    (item) =>
+      item.name === name &&
+      item.amount === amount &&
+      item.category === category
+  );
+
+  if (exists) {
+    return false;
+  }
+
+  list.push({
+    id: Date.now(),
+    name,
+    amount,
+    category,
+  });
+
+  saveFavorites(list);
+  return true;
+}
+
+// ----------------- 즐겨찾기 열기/닫기 -----------------
+function openFavoriteModal() {
+  const favModal  = document.getElementById("favorite-modal");
+  const favListEl = document.getElementById("favorite-list");
+  if (!favModal || !favListEl) return;
+
+  const favorites = loadFavorites();
+
+  if (!favorites.length) {
+    alert("저장된 즐겨찾기가 없습니다.");
+    return;
+  }
+
+  // 리스트 초기화
+  favListEl.innerHTML = "";
+
+  favorites.forEach((fav) => {
+    const li = document.createElement("li");
+    li.className = "favorite-item";
+
+    const amountNum = Number(fav.amount || 0);
+    const amountText = amountNum.toLocaleString();
+
+    li.innerHTML = `
+      <div class="fav-main">
+        <div class="fav-main-text">
+          <span class="fav-name">${fav.name || "(이름 없음)"}</span>
+          <span class="fav-amount">${amountText}원</span>
+        </div>
+        <button type="button" class="fav-delete-btn" data-id="${fav.id ?? ""}">✕</button>
+      </div>
+      <div class="fav-sub">
+        <span class="fav-category">${fav.category || "-"}</span>
+      </div>
+    `;
+
+    li.addEventListener("click", () => {
+      const nameInput   = document.getElementById("add-name");
+      const amountInput = document.getElementById("add-amount");
+      const catSelect   = document.getElementById("add-category");
+
+      if (nameInput)   nameInput.value = fav.name || "";
+      if (amountInput) amountInput.value = amountText;   // 4,500 형식
+      if (catSelect && fav.category) catSelect.value = fav.category;
+
+      closeFavoriteModal();
+    });
+
+    // X 버튼 클릭 → 해당 즐겨찾기만 삭제
+    const delBtn = li.querySelector(".fav-delete-btn");
+    if (delBtn) {
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+
+        let list = loadFavorites();
+
+        if (fav.id != null) {
+          list = list.filter((item) => item.id !== fav.id);
+        } else {
+          list = list.filter(
+            (item) =>
+              item.name !== fav.name ||
+              item.amount !== fav.amount ||
+              item.category !== fav.category
+          );
+        }
+
+        saveFavorites(list);
+        li.remove();
+
+        if (!list.length) {
+          closeFavoriteModal();
+        }
+      });
+    }
+
+    favListEl.appendChild(li);
+  });
+
+  favModal.classList.add("show");
+}
+
+function closeFavoriteModal() {
+  const favModal  = document.getElementById("favorite-modal");
+  if (!favModal) return;
+  favModal.classList.remove("show");
+}
+// =========================================================
+
+// 지출 추가 시 사용 (emotion까지 포함해서 저장)
+function addSpend(cat, amount, dateStr, score = null, emotion = null) {
+  TX.push({ date: dateStr, cat, amount, score, emotion });
 }
 
 //차트 색상 추가용 코드
@@ -118,6 +256,7 @@ function aggregateByDayLast30() {
 }
 
 let activeKey = null; //현재 열린 패널 (null/ stats / add / ai)
+let homeChartRef = null;
 
 //각 패널별 내용들
 function getPanelContent(key) {
@@ -179,7 +318,7 @@ function getPanelContent(key) {
         </section>
       `;
 
-    //------------지출 추가 (팀원 폼 + 만족도 버튼)---------------
+    //------------지출 추가 (팀원 폼 + 만족도 버튼 + 즐겨찾기)---------------
     case "add":
       return `
         <header class="add-header">
@@ -187,15 +326,24 @@ function getPanelContent(key) {
         </header>
 
         <form id="add-form" class="add-form">
-          <!-- 상품명 -->
+          <!-- 상품명 + 즐겨찾기 선택 -->
           <div class="add-field">
             <label class="add-label" for="add-name">상품명</label>
-            <input
-              id="add-name"
-              type="text"
-              class="add-input"
-              placeholder="예: 아메리카노"
-            />
+            <div class="add-name-row">
+              <input
+                id="add-name"
+                type="text"
+                class="add-input"
+                placeholder="예: 아메리카노"
+              />
+              <button
+                type="button"
+                class="add-chip"
+                id="btn-favorite-pick"
+              >
+                즐겨찾기 선택
+              </button>
+            </div>
           </div>
 
           <!-- 날짜 -->
@@ -203,11 +351,39 @@ function getPanelContent(key) {
             <label class="add-label" for="add-date">날짜</label>
             <div class="add-date-wrap">
               <input
-                id="add-date"
-                type="date"
-                class="add-input"
+                id="add-date-year"
+                type="text"
+                inputmode="numeric"
+                maxlength="4"
+                class="add-input add-input-date"
+                placeholder="YYYY"
               />
-              <span class="add-date-hint">[직접 입력]</span>
+              <span class="add-date-sep">-</span>
+              <input
+                id="add-date-month"
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                class="add-input add-input-date"
+                placeholder="MM"
+              />
+              <span class="add-date-sep">-</span>
+              <input
+                id="add-date-day"
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                class="add-input add-input-date"
+                placeholder="DD"
+              />
+              <button
+                type="button"
+                class="add-date-calendar-btn"
+                aria-label="달력으로 날짜 선택"
+              >
+                🗓️
+              </button>
+              <input id="add-date-native" type="date" class="add-date-native" />
             </div>
           </div>
 
@@ -217,30 +393,37 @@ function getPanelContent(key) {
             <div class="add-amount-row">
               <input
                 id="add-amount"
-                type="number"
-                min="0"
+                type="text"
+                inputmode="numeric"
                 class="add-input"
                 placeholder="0"
               />
-              <button
-                type="button"
-                class="add-chip"
-                id="btn-favorite-pick"
-              >
-                즐겨찾기에서 선택
-              </button>
             </div>
           </div>
 
-          <!-- 카테고리 -->
+          <!-- 카테고리 + 즐겨찾기 저장 -->
           <div class="add-field">
             <label class="add-label" for="add-category">카테고리</label>
-            <select id="add-category" class="add-select">
-              <option value="기타" selected>기타</option>
-              <option value="여가">여가</option>
-              <option value="식비">식비</option>
-              <option value="교통비">교통비</option>
-            </select>
+            <div class="add-category-row">
+              <select id="add-category" class="add-select">
+                <option value="식비" selected>식비</option>
+                <option value="생활">생활</option>
+                <option value="교통비">교통비</option>
+                <option value="의료·건강">의료·건강</option>
+                <option value="취미·문화생활">취미·문화생활</option>
+                <option value="교육·자기계발">교육·자기계발</option>
+                <option value="의류">의류</option>
+                <option value="기타">기타</option>
+              </select>
+
+              <button
+                type="button"
+                class="add-fav-save-btn"
+                id="btn-favorite-save"
+              >
+                즐겨찾기 저장
+              </button>
+            </div>
           </div>
 
           <!-- 감정 태그 -->
@@ -248,9 +431,12 @@ function getPanelContent(key) {
             <label class="add-label" for="add-emotion">감정 태그</label>
             <select id="add-emotion" class="add-select">
               <option value="">미선택</option>
-              <option value="행복">행복</option>
-              <option value="스트레스">스트레스</option>
-              <option value="무감정">무감정</option>
+              <option value="HAPPY">행복</option>
+              <option value="EXCITED">들뜸</option>
+              <option value="SAD">우울</option>
+              <option value="ANGRY">화남</option>
+              <option value="STRESSED">스트레스</option>
+              <option value="NEUTRAL">무감정</option>
             </select>
           </div>
 
@@ -321,13 +507,100 @@ function closePanel() {
 
 // ================= 지출 추가 패널 초기화 =================
 function initAddPanel() {
-  const dateInput = document.getElementById("add-date");
-  if (dateInput && !dateInput.value) {
+  const yearInput  = document.getElementById("add-date-year");
+  const monthInput = document.getElementById("add-date-month");
+  const dayInput   = document.getElementById("add-date-day");
+  const nativeInput = document.getElementById("add-date-native");
+  const calendarBtn = document.querySelector(".add-date-calendar-btn");
+
+  if (yearInput && monthInput && dayInput) {
     const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const dd = String(now.getDate()).padStart(2, "0");
-    dateInput.value = `${yyyy}-${mm}-${dd}`;
+    const yyyy = String(now.getFullYear());
+    const mm   = String(now.getMonth() + 1).padStart(2, "0");
+    const dd   = String(now.getDate()).padStart(2, "0");
+
+    yearInput.value  = yyyy;
+    monthInput.value = mm;
+    dayInput.value   = dd;
+
+    if (nativeInput) {
+      nativeInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    yearInput.addEventListener("input", () => {
+      if (yearInput.value.length >= 4) {
+        monthInput.focus();
+        monthInput.select();
+      }
+    });
+
+    monthInput.addEventListener("input", () => {
+      if (monthInput.value.length >= 2) {
+        dayInput.focus();
+        dayInput.select();
+      }
+    });
+  }
+
+  if (calendarBtn && nativeInput) {
+    calendarBtn.addEventListener("click", () => {
+      if (nativeInput.showPicker) {
+        nativeInput.showPicker();       // 크롬/엣지 등 최신 브라우저
+      } else {
+        nativeInput.focus();
+        nativeInput.click();            // 호환용
+      }
+    });
+
+    const amountInput = document.getElementById("add-amount");
+    if (amountInput) {
+      amountInput.addEventListener("input", () => {
+        let value = amountInput.value.replace(/[^\d]/g, "");
+        if (value === "") {
+          amountInput.value = "";
+          return;
+        }
+        amountInput.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      });
+    }
+
+    nativeInput.addEventListener("change", () => {
+      if (!nativeInput.value) return;
+      const [yy, mm2, dd2] = nativeInput.value.split("-");
+      if (yearInput)  yearInput.value  = yy;
+      if (monthInput) monthInput.value = mm2;
+      if (dayInput)   dayInput.value   = dd2;
+    });
+  }
+
+  // 즐겨찾기 저장 버튼
+  const favSaveBtn = document.getElementById("btn-favorite-save");
+  if (favSaveBtn) {
+    favSaveBtn.addEventListener("click", () => {
+      const name = document.getElementById("add-name").value.trim();
+      const amountRaw = document.getElementById("add-amount").value;
+      const amountVal = amountRaw.replace(/,/g, "");
+      const amount = Number(amountVal || 0);
+      const cat = document.getElementById("add-category").value;
+
+      if (!name || !amount || !cat) {
+        alert("상품명, 금액, 카테고리를 모두 입력해야 즐겨찾기로 저장할 수 있어요.");
+        return;
+      }
+
+      const added = addFavoriteItem(name, amount, cat);
+      if (added) {
+        alert("즐겨찾기에 저장했습니다.");
+      } else {
+        alert("이미 같은 즐겨찾기 항목이 있습니다.");
+      }
+    });
+  }
+
+  // 즐겨찾기 선택 버튼 (상품명 옆)
+  const favPickBtn = document.getElementById("btn-favorite-pick");
+  if (favPickBtn) {
+    favPickBtn.addEventListener("click", openFavoriteModal);
   }
 
   // 만족도 점수 버튼
@@ -371,20 +644,41 @@ function initAddPanel() {
     e.preventDefault();
 
     const name = document.getElementById("add-name").value.trim();  // 현재는 TX에는 안 쓰지만 나중에 확장 가능
-    const amountVal = document.getElementById("add-amount").value;
+    const amountRaw = document.getElementById("add-amount").value;
+    const amountVal = amountRaw.replace(/,/g, "");
     const amount = Number(amountVal || 0);
-    const date = document.getElementById("add-date").value;
+
+    const yInput  = document.getElementById("add-date-year");
+    const mInput  = document.getElementById("add-date-month");
+    const dInput  = document.getElementById("add-date-day");
+
+    const y = yInput.value.trim();
+    const m = mInput.value.trim();
+    const d = dInput.value.trim();
+
     const cat = document.getElementById("add-category").value;
+    const emotion = document.getElementById("add-emotion").value || null;
     const scoreVal = document.getElementById("add-score").value;
     const score = scoreVal ? Number(scoreVal) : null;
 
-    if (!name || !amount || !date) {
+    if (!name || !amount || !y || !m || !d) {
       alert("상품명, 날짜, 금액을 모두 입력해주세요.");
       return;
     }
 
-    // TX 에 score 포함해서 추가
-    addSpend(cat, amount, date, score);
+    // 간단 검증 (숫자 + 자리수)
+    if (y.length !== 4 || isNaN(Number(y)) ||
+        m.length < 1 || m.length > 2 || isNaN(Number(m)) ||
+        d.length < 1 || d.length > 2 || isNaN(Number(d))) {
+      alert("날짜 형식이 올바르지 않습니다.");
+      return;
+    }
+
+    const mm = String(Number(m)).padStart(2, "0");
+    const dd = String(Number(d)).padStart(2, "0");
+    const date = `${y}-${mm}-${dd}`;
+
+    addSpend(cat, amount, date, score, emotion);
 
     alert("지출이 추가되었습니다.");
     renderHomeCategoryChart();
@@ -393,7 +687,6 @@ function initAddPanel() {
     closePanel();
 
     // 통계/지출 기록은 다음에 열 때 새 데이터 기준으로 그림
-    // 홈화면 차트는 새로고침 시 반영
   });
 }
 
@@ -455,9 +748,6 @@ if (spendDetailBtn) {
   });
 }
 
-//
-//-----------------홈화면에 카테고리별 소비 비율 차트 -------------------
-let homeChartRef = null;
 //-----------------홈화면에 카테고리별 소비 비율 차트 -------------------
 function renderHomeCategoryChart() {
   const canvas = document.getElementById("homeCategoryChart");
@@ -526,10 +816,41 @@ function renderHomeCategoryChart() {
   }
 }
 
-// 페이지 로드 시 한 번 실행
+// ------------------- DOMContentLoaded 초기화 ------------------------
 document.addEventListener('DOMContentLoaded', () => {
   renderHomeCategoryChart();
   setupRecordDeleteHandler();
+
+  // 즐겨찾기 모달 관련 이벤트 연결
+  const favCloseBtn  = document.getElementById("favorite-modal-close");   // ✕ 버튼
+  const favModal     = document.getElementById("favorite-modal");
+  const favClearBtn  = document.getElementById("favorite-clear-btn");
+  const backdrop     = favModal ? favModal.querySelector(".favorite-modal-backdrop") : null;
+
+  if (favCloseBtn) {
+    favCloseBtn.addEventListener("click", closeFavoriteModal);
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener("click", closeFavoriteModal);
+  }
+
+  if (favModal) {
+    favModal.addEventListener("click", (e) => {
+      if (e.target === favModal) {
+        closeFavoriteModal();
+      }
+    });
+  }
+
+  if (favClearBtn) {
+    favClearBtn.addEventListener("click", () => {
+      if (!confirm("모든 즐겨찾기를 삭제할까요?")) return;
+      saveFavorites([]);
+      const favListEl = document.getElementById("favorite-list");
+      if (favListEl) favListEl.innerHTML = "";
+    });
+  }
 });
 
 // ------------------- 통계 패널: 카테고리별 소비 비율 ------------------------
@@ -813,7 +1134,7 @@ function closeRecordPanel() {
   recordPanel.classList.remove('open');
 }
 
-// 지출 기록 패널 내용 렌더링
+// 지출 기록 패널 내용 렌더링 (6개월 + 삭제 가능)
 function renderRecordPanel() {
   if (!recordContent) return;
 
@@ -877,12 +1198,13 @@ function renderRecordPanel() {
     });
   }
 }
+
 function openRecordPanel() {
   renderRecordPanel();
   recordPanel.classList.add('open');
 }
 
-// 지출 기록 삭제
+// 지출 기록 삭제 핸들러
 function setupRecordDeleteHandler() {
   if (!recordContent) return;
 
