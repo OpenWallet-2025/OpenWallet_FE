@@ -1,0 +1,1664 @@
+* { box-sizing: border-box; }
+
+    :root {
+      --ow-green: #76f36b;
+      --ow-green-strong: #22c55e;
+      --ow-bg: #050816;
+      --ow-card-bg: rgba(17, 24, 39, 0.82);
+      --ow-card-border: rgba(148, 163, 184, 0.45);
+      --ow-text-main: #f9fafb;
+      --ow-text-sub: #9ca3af;
+      --ow-radius-lg: 18px;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      color: var(--ow-text-main);
+      background: radial-gradient(circle at top, #22c55e33 0, #020617 55%);
+      position: relative;
+      display: block;
+      overflow: auto;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      filter: blur(60px);
+      opacity: 0.6;
+      z-index: -1;
+      pointer-events: none;
+    }
+    body::before {
+      top: -120px;
+      right: -160px;
+      background: radial-gradient(circle, #22c55e55, transparent 70%);
+    }
+    body::after {
+      bottom: -160px;
+      left: -140px;
+      background: radial-gradient(circle, #38bdf855, transparent 70%);
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 32px;
+      background: radial-gradient(circle at top, #022c22 0, #020617 40%, #020617 100%);
+      overflow: hidden;
+      box-shadow:
+        0 32px 80px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(148, 163, 184, 0.25);
+    }
+
+    .app-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #22c55e20, transparent 60%, #38bdf820);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .top-header {
+      position: relative;
+      height: 64px;
+      background: linear-gradient(120deg, #22c55e, #4ade80, #22c55e);
+      background-size: 200% 200%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.65);
+      animation: headerGlow 8s ease-in-out infinite;
+      z-index: 2;
+    }
+    .logo-area { display: flex; align-items: center; gap: 10px; }
+    .logo-img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+    .logo-title { font-size: 20px; line-height: 1; color: #022c22; font-weight: 600; }
+    .logo-title.bold {
+      margin-left: 2px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #022c22, #052e16);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+ .profile-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #eaffea; /* OW green 계열 배경 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.profile-icon img {
+  width: 85%;      /* 이미지가 원 안에 작게 들어가게 */
+  height: 85%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+
+    .content {
+      position: relative;
+      flex: 1;
+      padding: 16px 16px 80px;
+      overflow-y: auto;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
+      backdrop-filter: blur(18px);
+      z-index: 1;
+    }
+
+    /* 페이지 공통 */
+    .page {
+      display: none;
+      min-height: calc(100vh - 64px - 64px);
+    }
+    .page.active {
+      display: block;
+    }
+
+    .label {
+      font-size: 0.78rem;
+      color: var(--ow-text-sub);
+      margin: 0 0 4px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .sub-label {
+      font-size: 0.8rem;
+      color: var(--ow-text-sub);
+      margin: 4px 0 0;
+    }
+    .point { font-weight: 700; color: #f97316; }
+
+    .chat-summary {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 12px;
+      margin-left: 4px;
+    }
+    .chat-summary .bubble {
+      position: relative;
+      background: radial-gradient(circle at top left, #4ade8020, #22c55e33);
+      color: #e5fbe4;
+      border-radius: 16px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-top: 4px;
+      margin-left: 3px;
+      box-shadow:
+        0 10px 22px rgba(0, 0, 0, 0.65),
+        0 0 0 1px rgba(52, 211, 153, 0.4);
+      max-width: 92%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+    .chat-summary .bubble::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: -8px;
+      width: 0;
+      height: 0;
+      border-width: 10px 10px 0 10px;
+      border-style: solid;
+      border-color: #15803dcc transparent transparent transparent;
+      transform: rotate(175deg);
+    }
+
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      margin-bottom: 4px;
+    }
+    .view-tab {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      padding: 7px 0;
+      cursor: pointer;
+    }
+    .view-tab.active {
+      background: radial-gradient(circle at top, #f9fafb, #e5e7eb);
+      color: #020617;
+      border-color: transparent;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.8);
+    }
+
+    .calendar-card {
+      position: relative;
+      background: radial-gradient(circle at top, #020617, #020617f2);
+      margin-top: 16px;
+      padding: 12px 14px 16px;
+      border-radius: 20px;
+      box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.45);
+      display: none;
+    }
+    .calendar-card.active { display: block; }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    .calendar-month-label { font-weight: 600; }
+    .calendar-nav-btn {
+      border-radius: 999px;
+      border: none;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 0.7rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 0.75rem;
+    }
+    .cal-cell {
+      min-height: 52px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 4px 4px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 2px;
+      color: #9ca3af;
+    }
+    .cal-cell.today {
+      outline: 1px solid rgba(248, 250, 252, 0.9);
+      box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.6);
+    }
+    .cal-cell.has-spend { color: #e5e7eb; }
+    .cal-cell.big-spend { color: #fecaca; }
+    .cal-day { font-size: 0.78rem; }
+    .cal-amount {
+      font-size: 0.7rem;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cal-amount.minus { color: #fecaca; }
+    .cal-emoji {
+      font-size: 0.9rem;
+      margin-top: 1px;
+    }
+
+    .summary-card {
+      position: relative;
+      background: radial-gradient(circle at top left, #22c55e18, #020617cc);
+      margin-top: 18px;
+      padding: 14px 14px 16px;
+      border-radius: 20px;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(148, 163, 184, 0.55);
+      overflow: hidden;
+    }
+    .summary-card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: conic-gradient(from 140deg, #22c55e33, transparent 40%, #38bdf833, transparent 75%);
+      opacity: 0.75;
+      filter: blur(16px);
+      z-index: -1;
+    }
+    .summary-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .amount {
+      margin: 4px 0 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .amount .unit { font-size: 0.8rem; margin-left: 2px; color: #9ca3af; }
+    .small-btn {
+      background: radial-gradient(circle at top, #f9fafb, #e5e7eb);
+      color: #020617;
+      border-radius: 999px;
+      border: none;
+      padding: 7px 13px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.7);
+    }
+
+    .budget-bar {
+      margin-top: 10px;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(31, 41, 55, 0.9);
+      overflow: hidden;
+    }
+    .budget-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #f97316, #ef4444);
+      transform-origin: left;
+      transition: width 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    .remaining-label { font-size: 0.8rem; color: #e5e7eb; margin-top: 8px; text-align: right; }
+    .remaining-amount { font-weight: 600; }
+
+    .chart-card {
+      position: relative;
+      background: radial-gradient(circle at top, #0f172acc, #020617f2);
+      margin-top: 18px;
+      padding: 12px 14px 18px;
+      border-radius: 20px;
+      box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(148, 163, 184, 0.45);
+      overflow: hidden;
+    }
+    .chart-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #22c55e22, transparent 60%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .home-chart {
+      margin-top: 8px;
+      height: 220px;
+      position: relative;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, #0b1120, #020617);
+      overflow: hidden;
+    }
+    .home-chart canvas {
+      position: absolute;
+      inset: 8px;
+      width: calc(100% - 16px);
+      height: calc(100% - 16px);
+      z-index: 1;
+    }
+    .category-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      pointer-events: none;
+      text-align: center;
+      padding: 0 24px;
+    }
+    .category-center-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin: 0 0 2px;
+    }
+    .category-center-main {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #e5e7eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .category-center-sub {
+      margin: 2px 0 0;
+      font-size: 0.78rem;
+      color: #bbf7d0;
+    }
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .category-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      color: #e5e7eb;
+    }
+    .category-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .category-pill-amount {
+      color: #9ca3af;
+    }
+
+    .emotion-card-wrap { margin-top: 18px; margin-bottom: 24px; }
+    .emotion-legend {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.7rem;
+    }
+    .emotion-tag {
+      border-radius: 999px;
+      padding: 2px 8px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+    }
+    .emotion-tag.positive {
+      background: rgba(5, 46, 22, 0.85);
+      border-color: rgba(52, 211, 153, 0.6);
+    }
+    .emotion-tag.negative {
+      background: rgba(88, 28, 28, 0.9);
+      border-color: rgba(248, 113, 113, 0.7);
+    }
+
+    .emotion-hero {
+      margin-top: 10px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 11px;
+      border-radius: 16px;
+      background: radial-gradient(circle at top left, #020617, #020617f2);
+      box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.7);
+    }
+    .emotion-hero-emoji {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: radial-gradient(circle at top, #111827, #020617);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.9);
+    }
+    .emotion-hero-label {
+      font-size: 0.82rem;
+      color: #e5e7eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .emotion-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .emotion-card {
+      background: radial-gradient(circle at top, #020617, #020617f2);
+      border-radius: 16px;
+      padding: 9px 10px;
+      font-size: 0.8rem;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.9);
+      cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      transition: transform 0.14s ease-out, box-shadow 0.16s ease-out, border-color 0.16s ease-out, background 0.16s ease-out;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .emotion-card:hover {
+      transform: translateY(-3px) scale(1.01);
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(52, 211, 153, 0.4);
+      background: radial-gradient(circle at top left, #052e16, #020617);
+    }
+    .emotion-card.active {
+      border-color: rgba(52, 211, 153, 0.9);
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(52, 211, 153, 0.9);
+    }
+    .emotion-icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1f2937, #020617);
+      font-size: 16px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.7);
+    }
+    .emotion-text {
+      flex: 1;
+      text-align: left;
+    }
+    .emotion-text p {
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #e5e7eb;
+    }
+    .emotion-text strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.9rem;
+      color: #bbf7d0;
+    }
+
+    .emotion-chart-box {
+      margin-top: 12px;
+      padding: 10px 10px 14px;
+      border-radius: 16px;
+      background: radial-gradient(circle at top, #020617, #020617ee);
+      box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.55);
+      position: relative;
+      overflow: hidden;
+    }
+    .emotion-chart-box::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #22c55e22, transparent 55%, #38bdf822);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .emotion-chart-box canvas {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      z-index: 1;
+    }
+
+    /* 소비자 타입 (거북이) */
+    .consumer-type {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .consumer-type-inner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 12px 12px;
+      border-radius: 18px;
+      background: radial-gradient(circle at top left, #022c22, #020617);
+      box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(34, 197, 94, 0.5);
+    }
+    .consumer-avatar {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      border-radius: 24px;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      animation: turtleFloat 6s ease-in-out infinite;
+    }
+    .consumer-avatar::before {
+      content: "";
+      position: absolute;
+      inset: -10px;
+      background: radial-gradient(circle at top, #22c55e44, transparent 70%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+    }
+    .consumer-avatar img {
+      position: relative;
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.9));
+      z-index: 1;
+    }
+    .consumer-avatar-badge {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top, #f9fafb, #e5e7eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.9);
+      z-index: 2;
+    }
+    .consumer-meta-title {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #e5e7eb;
+    }
+    .consumer-meta-title strong {
+      color: #bbf7d0;
+    }
+    .consumer-meta-sub {
+      margin: 6px 0 0;
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+    .consumer-avatar.pop {
+      animation: avatarPop 0.5s ease-out;
+    }
+
+    @keyframes turtleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    @keyframes avatarPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+
+    /* 감정 팝업 (이모티콘 중앙 + 텍스트 아래) */
+    .emotion-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .emotion-modal-backdrop.show {
+      display: flex;
+    }
+    .emotion-modal {
+      width: 100%;
+      max-width: 360px;
+      background: radial-gradient(circle at top left, #020617, #020617f2);
+      border-radius: 20px;
+      padding: 18px 16px 16px;
+      box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(148, 163, 184, 0.8);
+      position: relative;
+    }
+    .emotion-modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .emotion-modal-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      margin-top: 6px;
+      margin-bottom: 8px;
+    }
+    .emotion-modal-emoji-large {
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      background: radial-gradient(circle at top, #111827, #020617);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.95);
+      margin-bottom: 4px;
+    }
+    .emotion-modal-title-center {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+    .emotion-modal-sub-center {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+    .emotion-modal-comment {
+      margin: 4px 0 0;
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+    .emotion-detail-list {
+      list-style: none;
+      margin: 6px 0 0;
+      padding: 0;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .emotion-detail-item {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(55, 65, 81, 0.85);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.78rem;
+    }
+    .emotion-detail-item:last-child {
+      border-bottom: none;
+    }
+    .emotion-detail-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .emotion-detail-cat { color: #e5e7eb; }
+    .emotion-detail-amount {
+      color: #bbf7d0;
+      white-space: nowrap;
+    }
+    .emotion-detail-sub {
+      font-size: 0.72rem;
+      color: #9ca3af;
+    }
+    .emotion-detail-empty {
+      padding: 4px 0;
+      font-size: 0.76rem;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    /* Floating 버튼 -> 지출 추가 */
+    .fab-add {
+      position: absolute;
+      right: 18px;
+      bottom: 24px;
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      border: none;
+      background: radial-gradient(circle at top, #22c55e, #166534);
+      color: #020617;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(22, 163, 74, 0.8);
+      z-index: 40;
+      animation: fabPulse 2.4s ease-in-out infinite;
+    }
+    .fab-add span.icon { font-size: 20px; }
+    .fab-add span.label {
+      font-size: 10px;
+      line-height: 1;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: -80px;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.98);
+      color: #e5e7eb;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(148, 163, 184, 0.65);
+      opacity: 0;
+      transition: bottom 0.25s ease-out, opacity 0.25s ease-out;
+      z-index: 60;
+      pointer-events: none;
+      max-width: 90%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast.show { bottom: 96px; opacity: 1; }
+
+    /* 하단 네비게이션 */
+    .bottom-nav {
+      position: relative;
+      height: 64px;
+      padding: 8px 14px 12px;
+      background: radial-gradient(circle at top, #020617, #020617f2);
+      border-top: 1px solid rgba(15, 23, 42, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 3;
+    }
+    .bottom-nav-inner {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .bottom-nav-btn {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: radial-gradient(circle at top, #020617, #020617);
+      color: #9ca3af;
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: background 0.16s ease-out, border-color 0.16s ease-out, color 0.16s ease-out, transform 0.12s ease-out;
+    }
+    .bottom-nav-btn span.icon { font-size: 1.1rem; }
+    .bottom-nav-btn span.label { font-size: 0.68rem; }
+    .bottom-nav-btn.active {
+      color: #f9fafb;
+      border-color: rgba(34, 197, 94, 0.9);
+      background: radial-gradient(circle at top, #022c22, #020617);
+      transform: translateY(-1px);
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(34, 197, 94, 0.6);
+    }
+
+    *::-webkit-scrollbar { width: 5px; height: 5px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 999px; }
+    *::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
+
+    @keyframes headerGlow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    @keyframes fabPulse {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.95),
+          0 0 0 1px rgba(22, 163, 74, 0.8);
+      }
+      50% {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow:
+          0 24px 56px rgba(0, 0, 0, 1),
+          0 0 0 2px rgba(74, 222, 128, 0.8);
+      }
+    }
+
+    /* --- AI 리포트 페이지 (챗봇) --- */
+    .report-header {
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+    .report-header-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 4px;
+    }
+    .report-header-sub {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+    .report-chat {
+      margin-top: 12px;
+      border-radius: 18px;
+      padding: 10px 10px 12px;
+      background: radial-gradient(circle at top left, #020617, #020617f2);
+      box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: calc(100vh - 64px - 72px - 120px);
+      max-height: 480px;
+    }
+    .report-chat-log {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+    .chat-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .chat-row.me {
+      justify-content: flex-end;
+    }
+    .chat-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top, #111827, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: #e5e7eb;
+      flex-shrink: 0;
+    }
+    .chat-bubble {
+      max-width: 80%;
+      padding: 7px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .chat-bubble.me {
+      background: radial-gradient(circle at top left, #22c55e, #16a34a);
+      color: #022c22;
+      border-bottom-right-radius: 2px;
+    }
+    .chat-bubble.ai {
+      background: radial-gradient(circle at top left, #020617, #020617f2);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: #e5e7eb;
+      border-bottom-left-radius: 2px;
+    }
+    .report-input-row {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .report-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.92);
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      padding: 8px 12px;
+      outline: none;
+    }
+    .report-input::placeholder {
+      color: #6b7280;
+    }
+    .report-send-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 10px;
+      background: radial-gradient(circle at top, #22c55e, #16a34a);
+      color: #022c22;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow:
+        0 10px 22px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(22, 163, 74, 0.8);
+    }
+
+    .report-quick-questions {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .report-chip {
+      border-radius: 999px;
+      padding: 4px 8px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.74rem;
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+
+    /* --- 소비 트렌드 페이지 --- */
+    .trend-header {
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+    .trend-title {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .trend-sub {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+    .trend-note {
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+    .trend-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .trend-card {
+      border-radius: 18px;
+      padding: 10px 12px;
+      background: radial-gradient(circle at top left, #020617, #020617f2);
+      box-shadow:
+        0 14px 32px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.6);
+    }
+    .trend-chip-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 0.74rem;
+      color: #9ca3af;
+    }
+    .trend-chip {
+      border-radius: 999px;
+      border: 1px solid rgba(52, 211, 153, 0.8);
+      padding: 2px 7px;
+      font-size: 0.7rem;
+      color: #bbf7d0;
+      background: rgba(5, 46, 22, 0.8);
+    }
+    .trend-main {
+      margin: 2px 0 4px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+    .trend-detail {
+      margin: 0;
+      font-size: 0.78rem;
+      color: #9ca3af;
+    }
+    .trend-tagline {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: #e5e7eb;
+    }
+
+    /* --- 지출 추가 패널 --- */
+    .add-panel-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(16px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 55;
+    }
+    .add-panel-backdrop.show {
+      display: flex;
+    }
+    .add-panel {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 24px 24px 0 0;
+      background: radial-gradient(circle at top left, #020617, #020617f2);
+      padding: 10px 16px 18px;
+      box-shadow:
+        0 -18px 40px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(148, 163, 184, 0.7);
+      max-height: 80vh;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+      overflow-y: auto;
+    }
+    .add-panel-backdrop.show .add-panel {
+      transform: translateY(0);
+    }
+    .add-panel-handle {
+      width: 48px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(75, 85, 99, 0.9);
+      margin: 4px auto 10px;
+    }
+    .add-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .add-header h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .add-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+    .add-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .add-label {
+      font-size: 0.76rem;
+      color: #9ca3af;
+    }
+    .add-name-row,
+    .add-date-wrap,
+    .add-amount-row,
+    .add-category-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .add-input,
+    .add-select,
+    .add-textarea {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      outline: none;
+    }
+    .add-input::placeholder,
+    .add-textarea::placeholder {
+      color: #6b7280;
+    }
+    .add-input-date {
+      width: 56px;
+      text-align: center;
+    }
+    .add-date-sep {
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+    .add-date-calendar-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .add-date-native {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .add-chip {
+      border-radius: 999px;
+      border: none;
+      background: radial-gradient(circle at top, #22c55e, #16a34a);
+      color: #022c22;
+      font-size: 0.76rem;
+      padding: 6px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .add-receipt-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 12px;
+      border: 1px dashed rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+    }
+    .add-receipt-icon {
+      font-size: 1rem;
+    }
+    .add-score-wrap {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .score-btn {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      padding: 6px 0;
+      cursor: pointer;
+    }
+    .score-btn.active {
+      border-color: rgba(52, 211, 153, 0.9);
+      background: radial-gradient(circle at top, #22c55e, #16a34a);
+      color: #022c22;
+      font-weight: 600;
+    }
+    .add-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .add-submit,
+    .add-cancel {
+      flex: 1;
+      border-radius: 999px;
+      border: none;
+      padding: 8px 0;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+    .add-submit {
+      background: radial-gradient(circle at top, #22c55e, #16a34a);
+      color: #022c22;
+      font-weight: 600;
+    }
+    .add-cancel {
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+    /* Splash screen – 폰 화면 안에서만 전체 덮기 */
+    .app-shell { position: relative; } /* 앱 프레임 안 기준점 */
+
+/* Splash Screen 메인 */
+#splash-screen {
+  position: absolute; /* app-shell 안에서 전체 덮기 */
+  inset: 0;
+  background: #050816;  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
+}
+
+#splash-screen.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 스플래시 내부 정렬 */
+.splash-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* 텍스트는 위쪽 — 브랜드 인트로 느낌 */
+.splash-title {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 50px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, #22c55e, #bbf7d0);
+  -webkit-background-clip: text;
+  white-space: nowrap;
+  color: transparent;
+  text-shadow: 0 0 10px rgba(34,197,94,0.45);
+}
+
+/* 로고는 화면 중앙 강조 */
+.splash-logo {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: auto;
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,0.75));
+}
+
+.trend-controls {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  padding: 16px 14px;
+  border-radius: var(--ow-radius-lg, 16px);
+  background: radial-gradient(circle at top left,
+    rgba(34, 197, 94, 0.26),
+    rgba(15, 23, 42, 0.98)
+  );
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.7);
+}
+
+.trend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trend-form .label {
+  font-size: 12px;
+  color: var(--ow-text-sub, #9ca3af);
+  margin-bottom: 4px;
+}
+
+/* 키워드 입력 */
+.trend-input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.88);
+  color: var(--ow-text-main, #e5e7eb);
+  padding: 10px 12px;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+}
+
+.trend-input::placeholder {
+  color: rgba(148, 163, 184, 0.7);
+}
+
+/* N일 / 최대 기사 수 2열 */
+.trend-row {
+  display: flex;
+  gap: 8px;
+}
+
+.trend-field {
+  flex: 1;
+}
+
+/* 버튼 + 로딩 텍스트 정렬 */
+.trend-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* 실행 버튼은 홈의 small-btn 톤 맞추기 */
+#btnTrendRun.small-btn {
+  flex-shrink: 0;
+  font-size: 13px;
+  padding-inline: 12px;
+  padding-block: 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--ow-green, #76f36b), var(--ow-green-strong, #22c55e));
+  color: #020617;
+  border: none;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.55);
+}
+
+#btnTrendRun.small-btn:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 4px 18px rgba(34, 197, 94, 0.4);
+}
+
+/* "요약 중…" 뱃지 */
+.trend-loading {
+  font-size: 12px;
+  color: var(--ow-text-sub, #9ca3af);
+}
+
+/* ---------- 요약 결과 카드 ---------- */
+.trend-summary {
+  margin-top: 10px;
+  padding: 16px 14px 18px;
+  border-radius: var(--ow-radius-lg, 16px);
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.85);
+}
+
+/* 기간 / 모델 / 키워드 칩 */
+.trend-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.trend-meta-chip {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(75, 85, 99, 0.9);
+  color: var(--ow-text-sub, #9ca3af);
+}
+
+/* Bullets / Key Stats / Risks / Opportunities 영역을
+   데모 카드 느낌의 박스로 */
+.trend-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.trend-col {
+  padding: 10px 10px 10px;
+  border-radius: 14px;
+  background: radial-gradient(circle at top,
+    rgba(31, 41, 55, 0.9),
+    rgba(15, 23, 42, 0.95)
+  );
+  border: 1px solid rgba(55, 65, 81, 0.9);
+}
+
+.trend-col-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: #e5e7eb;
+}
+
+/* 리스트 기본값 정리 */
+.trend-ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+  font-size: 12px;
+  color: var(--ow-text-sub, #9ca3af);
+}
+
+.trend-ul li + li {
+  margin-top: 4px;
+}
+
+/* 비어있는 경우 */
+.trend-empty {
+  list-style: none;
+  padding-left: 0;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+/* Sources는 링크 pill 스타일 */
+.trend-sources {
+  padding-left: 0;
+  list-style: none;
+}
+
+.trend-sources li + li {
+  margin-top: 4px;
+}
+
+.trend-sources a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--ow-green-soft, #a8fd9c);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  text-decoration: none;
+}
+
+.trend-sources a:hover {
+  text-decoration: underline;
+}
+
+/* 조금 넓은 화면에서 2열로 나누고 싶으면 */
+@media (min-width: 520px) {
+  .trend-columns {
+    flex-direction: row;
+  }
+}
+
+/* =========================
+   Trend 검색바 & 결과 디테일 업그레이드
+   ========================= */
+
+/* 검색 카드 자체에 살짝 유리 느낌 */
+.trend-controls {
+  position: relative;
+  overflow: hidden;
+}
+
+.trend-controls::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(34,197,94,0.18), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(56,189,248,0.12), transparent 60%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* 라벨과 입력 사이 간격 조금만 줄이기 */
+.trend-form .label {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* 입력창을 “검색창” 느낌으로 */
+.trend-input {
+  border-radius: 999px;
+  padding: 9px 12px 9px 34px; /* 왼쪽 여백 넉넉히 */
+  position: relative;
+}
+
+/* 돋보기 아이콘 (pseudo 로 추가) */
+.trend-input-wrap {
+  position: relative;
+}
+
+.trend-input-wrap::before {
+  content: "🔍";
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* 포커스 시 초록 줄 + 글로우 */
+.trend-input:focus {
+  border-color: rgba(52,211,153,0.9);
+  box-shadow:
+    0 0 0 1px rgba(52,211,153,0.7),
+    0 0 18px rgba(16,185,129,0.45);
+}
+
+/* 숫자 입력 박스도 pill 느낌 맞추기 */
+.trend-row .trend-field input[type="number"] {
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.45);
+  background: rgba(15,23,42,0.9);
+  color: #e5e7eb;
+  padding: 7px 10px;
+  font-size: 0.8rem;
+}
+
+/* 요약 중 상태를 작은 pill 배지로 */
+.trend-loading {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.9);
+  border: 1px solid rgba(55,65,81,0.8);
+}
+
+/* 결과 카드 위에 상단 라인 살짝 */
+.trend-summary {
+  position: relative;
+}
+
+.trend-summary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e, #38bdf8);
+  opacity: 0.7;
+}
+
+/* Bullets / Key Stats / Risks / Opportunities 제목 살짝 칩 느낌 */
+.trend-col-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trend-col-title::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #22c55e;
+}

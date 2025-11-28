@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Wallet - Home Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app-root">
+    <div class="app-shell">
+      <!-- Splash Screen (폰 화면 안에서만 덮기) -->
+      <div id="splash-screen">
+        <div class="splash-content">
+      <img src="assets/openwallet-start.png" alt="OpenWallet Splash" class="splash-logo" />
+      <h1 class="splash-title">Open Wallet</h1>
+    </div>
+  </div>
+  <header class="top-header">
+  <div class="logo-area">
+    <img src="assets/turtle-mascot.png" alt="Open Wallet Logo" class="logo-img" />
+    <span class="logo-title bold">Open</span>
+    <span class="logo-title bold">Wallet</span>
+  </div>
+ <button class="profile-btn" type="button">
+  <div class="profile-icon">
+    <img src="assets/profile-jjeong.png" alt="사용자 프로필 이미지" />
+  </div>
+</button>
+</header>
+
+
+      <main class="content">
+        <!-- Home 페이지 -->
+        <section id="page-home" class="page active">
+          <section class="chat-summary">
+            <p class="label">소비 요약 한 줄</p>
+            <div class="bubble">이번 달 소비 패턴을 분석 중입니다…</div>
+          </section>
+
+          <section class="view-tabs">
+            <button class="view-tab active" type="button" data-view="summary">요약</button>
+            <button class="view-tab" type="button" data-view="calendar">달력</button>
+          </section>
+
+          <div id="summaryView">
+            <section class="summary-card">
+              <div class="summary-top">
+                <div>
+                  <p class="label">이번달 지출</p>
+                  <p class="amount">0<span class="unit">원</span></p>
+                </div>
+                <button class="small-btn" type="button" id="btn-record-open">지출 요약 보기</button>
+              </div>
+              <p class="sub-label">예산 달성률 <span class="point">0%</span></p>
+              <div class="budget-bar"><div class="budget-bar-fill"></div></div>
+              <p class="sub-label remaining-label">남은 예산 <span class="remaining-amount">0원</span></p>
+            </section>
+
+            <section class="chart-card">
+              <p class="label">카테고리별 소비 비율</p>
+              <div class="home-chart">
+                <canvas id="homeCategoryChart"></canvas>
+                <div class="category-center">
+                  <p class="category-center-label">Top Category</p>
+                  <p class="category-center-main" id="cat-top-name">-</p>
+                  <p class="category-center-sub" id="cat-top-amount">-</p>
+                </div>
+              </div>
+              <div class="category-pills" id="categoryPills"></div>
+            </section>
+
+            <section class="emotion-card-wrap">
+              <p class="label">감정 소비 카드</p>
+              <div class="emotion-legend">
+                <span class="emotion-tag positive">긍정 감정</span>
+                <span class="emotion-tag negative">부정 감정</span>
+              </div>
+
+              <div class="emotion-hero" id="emotionHero">
+                <div class="emotion-hero-emoji" id="emotionHeroEmoji">😊</div>
+                <p class="emotion-hero-label" id="emotionHeroLabel">감정별 소비 내역</p>
+              </div>
+
+              <div class="emotion-list">
+                <div class="emotion-card" data-emotion="HAPPY">
+                  <div class="emotion-icon">😊</div>
+                  <div class="emotion-text">
+                    <p>행복 소비</p>
+                    <strong>40%</strong>
+                  </div>
+                </div>
+                <div class="emotion-card" data-emotion="EXCITED">
+                  <div class="emotion-icon">🤩</div>
+                  <div class="emotion-text">
+                    <p>들뜸 소비</p>
+                    <strong>10%</strong>
+                  </div>
+                </div>
+                <div class="emotion-card" data-emotion="SAD">
+                  <div class="emotion-icon">😢</div>
+                  <div class="emotion-text">
+                    <p>우울 소비</p>
+                    <strong>10%</strong>
+                  </div>
+                </div>
+                <div class="emotion-card" data-emotion="ANGRY">
+                  <div class="emotion-icon">😡</div>
+                  <div class="emotion-text">
+                    <p>화남 소비</p>
+                    <strong>5%</strong>
+                  </div>
+                </div>
+                <div class="emotion-card" data-emotion="STRESSED">
+                  <div class="emotion-icon">😣</div>
+                  <div class="emotion-text">
+                    <p>스트레스 소비</p>
+                    <strong>25%</strong>
+                  </div>
+                </div>
+                <div class="emotion-card" data-emotion="NEUTRAL">
+                  <div class="emotion-icon">😐</div>
+                  <div class="emotion-text">
+                    <p>무감정 소비</p>
+                    <strong>10%</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="emotion-chart-box">
+                <canvas id="emotionChart"></canvas>
+              </div>
+            </section>
+          </div>
+
+          <section class="calendar-card" id="calendarCard">
+            <section id="consumerType" class="consumer-type" style="margin-bottom:12px; display:block;">
+              <div class="consumer-type-inner">
+                <div class="consumer-avatar">
+                  <img src="assets/turtle-mascot.png" alt="Open Wallet 거북이 마스코트" />
+                  <div class="consumer-avatar-badge" id="consumerBadge">☕</div>
+                </div>
+                <div class="consumer-meta">
+                  <p class="consumer-meta-title">당신은 <strong id="consumerLabel">-</strong>형 소비자예요!</p>
+                  <p class="consumer-meta-sub" id="consumerSub">이번 달 소비 패턴을 분석 중입니다…</p>
+                </div>
+              </div>
+            </section>
+
+            <p class="label">이번 달 소비 달력</p>
+            <div class="calendar-header">
+              <button class="calendar-nav-btn" type="button" id="calPrev">‹</button>
+              <span class="calendar-month-label" id="calMonthLabel"></span>
+              <button class="calendar-nav-btn" type="button" id="calNext">›</button>
+            </div>
+            <div class="calendar-weekdays">
+              <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </section>
+
+          <!-- 플로팅 버튼: 지출 추가 -->
+          <button class="fab-add" type="button" id="btn-add">
+            <span class="icon">＋</span>
+            <span class="label">지출 추가</span>
+          </button>
+        </section>
+
+        <!-- AI 리포트 페이지 (챗봇) -->
+        <section id="page-report" class="page">
+          <section class="report-header">
+            <p class="report-header-title">AI 소비 리포트</p>
+            <p class="report-header-sub">이번 달 소비 패턴을 질문하면, Open Wallet AI가 대답해요. (Demo)</p>
+          </section>
+
+          <section class="report-chat">
+            <div class="report-chat-log" id="reportChatLog">
+              <div class="chat-row ai">
+                <div class="chat-avatar">AI</div>
+                <div class="chat-bubble ai">
+                  안녕하세요, Open Wallet AI입니다 👋<br />
+                  이번 달 소비에 대해 궁금한 점을 물어보세요.<br />
+                  예: "이번 달 카페에 얼마 썼어?" / "예산 초과 가능성 알려줘"
+                </div>
+              </div>
+            </div>
+
+            <div class="report-input-row">
+              <input
+                id="reportInput"
+                class="report-input"
+                type="text"
+                placeholder="예: 이번 달 식비 요약해줘"
+              />
+              <button class="report-send-btn" type="button" id="reportSendBtn">
+                <span>보내기</span> <span>➤</span>
+              </button>
+            </div>
+
+            <div class="report-quick-questions">
+              <button class="report-chip" data-q="이번 달 총 지출과 예산 달성률 알려줘">
+                이번 달 요약
+              </button>
+              <button class="report-chip" data-q="카테고리별로 가장 많이 쓴 순서대로 알려줘">
+                카테고리 랭킹
+              </button>
+              <button class="report-chip" data-q="이번 달 감정 소비 특징 요약해줘">
+                감정 소비 요약
+              </button>
+            </div>
+          </section>
+        </section>
+<!-- 소비 트렌드 페이지 -->
+<section id="page-trend" class="page">
+  <section class="trend-header">
+    <p class="trend-title">최근 소비 트렌드</p>
+  </section>
+
+  <!-- 실제 검색 영역을 상단으로: 컨트롤 → 요약 결과 -->
+  <section class="trend-controls">
+    <div class="trend-form">
+      <label class="label" for="trendKeywords">소비 트렌드 검색</label>
+      <textarea id="trendKeywords" class="trend-input" rows="2"
+        placeholder="검색어 예시: 소비, 쇼핑, OTT, 주식"></textarea>
+
+      <div class="trend-row">
+        <div class="trend-field">
+          <label class="label" for="trendDays">최근 N일</label>
+          <input id="trendDays" class="trend-input" type="number" min="1" max="30" value="7" />
+        </div>
+        <div class="trend-field">
+          <label class="label" for="trendMax">최대 기사 수</label>
+          <input id="trendMax" class="trend-input" type="number" min="5" max="50" value="10" />
+        </div>
+      </div>
+
+      <div class="trend-actions">
+        <button id="btnTrendRun" class="small-btn" type="button">트렌드 요약 실행</button>
+        <span id="trendLoading" class="trend-loading" style="display:none;">요약 중…</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="trend-summary" id="trendSummaryBox" style="display:none;">
+    <div class="trend-summary-meta">
+      <span id="trendPeriod" class="trend-meta-chip"></span>
+      <span id="trendModel" class="trend-meta-chip"></span>
+      <span id="trendKeywordsEcho" class="trend-meta-chip"></span>
+    </div>
+
+    <div class="trend-columns">
+      <article class="trend-col">
+        <h3 class="trend-col-title">Bullets</h3>
+        <ul id="trendBullets" class="trend-ul"></ul>
+      </article>
+      <article class="trend-col">
+        <h3 class="trend-col-title">Key Stats</h3>
+        <ul id="trendKeyStats" class="trend-ul"></ul>
+      </article>
+    </div>
+
+    <div class="trend-columns">
+      <article class="trend-col">
+        <h3 class="trend-col-title">Risks</h3>
+        <ul id="trendRisks" class="trend-ul"></ul>
+      </article>
+      <article class="trend-col">
+        <h3 class="trend-col-title">Opportunities</h3>
+        <ul id="trendOpps" class="trend-ul"></ul>
+      </article>
+    </div>
+
+    <article class="trend-col">
+      <h3 class="trend-col-title">Sources</h3>
+      <ul id="trendSources" class="trend-ul trend-sources"></ul>
+    </article>
+  </section>
+
+  <!--  더미(예시) 카드는 맨 아래로 -->
+  <section class="trend-list">
+    <h3 class="trend-col-title" style="margin-top:8px;">소비 트렌드 NEWS</h3>
+
+    <article class="trend-card">
+      <div class="trend-chip-row">
+        <span class="trend-chip">☕ 카페 · 소확행</span>
+        <span>2030, 직장인 중심</span>
+      </div>
+      <p class="trend-main">"하루 한 잔 루틴"으로 카페 소비는 유지, 브랜드는 저가/구독형으로 이동</p>
+      <p class="trend-detail">
+        카페 횟수는 줄지 않았지만, 리필·구독·편의점 커피 비중이 늘어나면서 건당 단가는 낮아지는 추세예요.
+        Open Wallet의 식비·카페 카테고리 예산도 이 흐름을 반영해 조정할 수 있어요.
+      </p>
+    </article>
+
+    <article class="trend-card">
+      <div class="trend-chip-row">
+        <span class="trend-chip">✈️ 근거리 여행</span>
+        <span>주말, 연차 소비 패턴</span>
+      </div>
+      <p class="trend-main">장거리 여행 대신, 짧고 잦은 "근교 소도시·당일치기" 지출이 증가</p>
+      <p class="trend-detail">
+        교통비·숙박비 고정비를 줄이고, 경험 위주 지출(체험, 맛집, 전시)에 예산을 집중하는 패턴이 보여요.
+        교통비와 여가/취미 카테고리의 조합을 보고 Open Wallet이 여행 예산 가이드를 제안할 수 있어요.
+      </p>
+    </article>
+
+    <article class="trend-card">
+      <div class="trend-chip-row">
+        <span class="trend-chip">📦 구독 · 정기 결제</span>
+        <span>OTT, 클라우드, 교육</span>
+      </div>
+      <p class="trend-main">사용하지 않는 구독을 정리하는 "구독 다이어트" 수요가 상승</p>
+      <p class="trend-detail">
+        OTT, 게임, 생산성 도구 등 자동 결제가 쌓이면서, 분기마다 한 번씩 정리하는 사람이 늘고 있어요.
+        Open Wallet의 '정기 결제 캘린더'와 연결하면, 끊어도 되는 구독을 자동으로 추천해 줄 수 있어요.
+      </p>
+    </article>
+  </section>
+</section>
+
+      </main>
+
+      <!-- 하단 네비게이션 -->
+      <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+          <button class="bottom-nav-btn active" type="button" data-page="page-home">
+            <span class="icon">🏠</span>
+            <span class="label">홈</span>
+          </button>
+          <button class="bottom-nav-btn" type="button" data-page="page-report">
+            <span class="icon">💬</span>
+            <span class="label">AI 리포트</span>
+          </button>
+          <button class="bottom-nav-btn" type="button" data-page="page-trend">
+            <span class="icon">📊</span>
+            <span class="label">트렌드</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+
+    <!-- 감정 소비 모달 -->
+    <div class="emotion-modal-backdrop" id="emotionModal">
+      <div class="emotion-modal">
+        <button class="emotion-modal-close" type="button" id="emotionModalClose">×</button>
+        <div class="emotion-modal-body">
+          <div class="emotion-modal-emoji-large" id="emotionModalEmoji">😊</div>
+          <p class="emotion-modal-title-center" id="emotionModalTitle">행복 소비</p>
+          <p class="emotion-modal-sub-center" id="emotionModalSub">40% · 감정 소비 내역</p>
+          <p class="emotion-modal-comment" id="emotionModalComment">
+            기분 좋은 날, 작은 보상 소비가 많았어요. 예산 안에서 즐기는 행복 소비는 충분히 괜찮아요.
+          </p>
+        </div>
+        <ul class="emotion-detail-list" id="emotionModalList"></ul>
+      </div>
+    </div>
+
+    <!-- 지출 추가 패널 -->
+    <div class="add-panel-backdrop" id="addPanel">
+      <div class="add-panel">
+        <div class="add-panel-handle"></div>
+        <div id="addPanelContent"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <!-- JS -->
+  <script src="./app.js"></script>
+</body>
+</html>
