@@ -554,7 +554,7 @@ async function runTrendSummary(params){
     }
     const summary = await res.json();
 
-    // ✅ 빈 데이터면 데모 유지 (요약 박스 닫기)
+    // 빈 데이터면 데모 유지 (요약 박스 닫기)
     const empty =
       (!summary.bullets || summary.bullets.length === 0) &&
       (!summary.key_stats || summary.key_stats.length === 0) &&
