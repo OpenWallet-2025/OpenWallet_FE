@@ -37,14 +37,15 @@ const EMOTION_COMMENTS = {
 const EMOTION_EMOJIS = { HAPPY:"😊", EXCITED:"🤩", SAD:"😢", ANGRY:"😡", STRESSED:"😣", NEUTRAL:"😐" };
 const EMOTION_KEYS = ["HAPPY","EXCITED","SAD","ANGRY","STRESSED","NEUTRAL"];
 
-const CATEGORY_EMOJI = { "식비":"☕", "취미·문화생활":"🎮", "교통비":"🚗", "기타":"🛍️" };
+const CATEGORY_EMOJI = { "식비":"☕", "취미·문화생활":"🎮", "교통비":"🚗", "기타":"🛍️", "구독":"📺" };
 TX.forEach((t, i) => { t.emotion = EMOTION_KEYS[i % EMOTION_KEYS.length]; });
 
 const CONSUMER_TYPES = {
   "식비": { label:"커피·간식러", badge:"☕", sub:"작은 행복을 자주 챙기는 타입이에요. 예산 안에서만 즐기면 오히려 좋은 루틴!" },
   "취미·문화생활": { label:"여가·취미파", badge:"✈️", sub:"경험과 콘텐츠에 아낌없이 투자하는 스타일이에요. 일정 한도를 정해두면 더 안정적이에요." },
   "교통비": { label:"이동많은러", badge:"🚗", sub:"이동이 잦은 시기네요. 정기권/패스를 활용하면 지출을 꽤 줄일 수 있어요." },
-  "기타": { label:"즉흥소비러", badge:"🛍️", sub:"소소한 지출이 여기저기 흩어져 있어요. 한 번에 모아보면 패턴이 더 잘 보여요." }
+  "기타": { label:"즉흥소비러", badge:"🛍️", sub:"소소한 지출이 여기저기 흩어져 있어요. 한 번에 모아보면 패턴이 더 잘 보여요." },
+  "구독": { label:"구독러", badge:"📺", sub:"정기 결제가 많은 편이에요. 갱신일 기준으로 꼭 필요한 구독만 남기면 지출이 확 줄어들어요." }
 };
 const DEFAULT_CONSUMER_TYPE = { label:"균형잡힌", badge:"🧾", sub:"아직 뚜렷한 편향 없이 고르게 쓰고 있어요. 지금 밸런스를 유지해보는 건 어떨까요?" };
 
@@ -369,10 +370,19 @@ const initAddPanel = () => {
         <label class="add-label" for="add-category">카테고리</label>
         <div class="add-category-row">
           <select id="add-category" class="add-select">
-            <option value="식비">식비</option><option value="생활">생활</option><option value="교통비">교통비</option>
-            <option value="취미·문화생활">취미·문화생활</option><option value="기타">기타</option>
+            <option value="식비">식비</option>
+            <option value="생활">생활</option>
+            <option value="교통비">교통비</option>
+            <option value="취미·문화생활">취미·문화생활</option>
+            <option value="구독">구독</option>
+            <option value="기타">기타</option>
           </select>
         </div>
+        <!-- 구독 알림 안내 문구 -->
+        <p id="subscription-hint" class="add-subscription-hint" style="display:none;">
+          <span class="add-subscription-icon">🔔</span>
+          <span id="subscription-hint-text"></span>
+        </p>
       </div>
       <div class="add-field">
         <label class="add-label" for="add-emotion">감정 태그</label>
@@ -419,14 +429,48 @@ const initAddPanel = () => {
   const receiptBtn = document.getElementById("btn-receipt");
   const receiptInput= document.getElementById("add-receipt-input");
 
+  const categorySelect = document.getElementById("add-category");
+  const subscriptionHint = document.getElementById("subscription-hint");
+  const subscriptionHintText = document.getElementById("subscription-hint-text");
+
+  // 현재 날짜 문자열 계산 함수
+  const getCurrentDateString = () => {
+    if (nativeDate && nativeDate.value) {
+      const [y,m,d] = nativeDate.value.split("-");
+      if (y && m && d) return `${y}년 ${m}월 ${d}일`;
+    }
+    if (yearEl && monthEl && dayEl && yearEl.value && monthEl.value && dayEl.value) {
+      return `${yearEl.value}년 ${monthEl.value}월 ${dayEl.value}일`;
+    }
+    return null;
+  };
+
+  // 구독 안내 문구 업데이트
+  const updateSubscriptionHint = () => {
+    if (!subscriptionHint || !subscriptionHintText || !categorySelect) return;
+    if (categorySelect.value !== "구독") {
+      subscriptionHint.style.display = "none";
+      return;
+    }
+    const dateStr = getCurrentDateString();
+    subscriptionHint.style.display = "block";
+    subscriptionHintText.textContent = dateStr
+      ? `${dateStr}을(를)기준으로 매달 소비 달력에 구독 결제가 표시돼요.`
+      : `선택한 날짜를 기준으로 매달 소비 달력에 구독 결제가 표시돼요.`;
+  };
+
   const now2 = new Date(); const yyyy2=String(now2.getFullYear()); const mm2=String(now2.getMonth()+1).padStart(2,"0"); const dd2=String(now2.getDate()).padStart(2,"0");
   if (yearEl && monthEl && dayEl){ yearEl.value=yyyy2; monthEl.value=mm2; dayEl.value=dd2; }
   if (nativeDate) nativeDate.value = `${yyyy2}-${mm2}-${dd2}`;
+
+  // 초기 구독 안내 문구 상태
+  updateSubscriptionHint();
 
   if (chipToday && yearEl && monthEl && dayEl && nativeDate){
     chipToday.addEventListener("click", ()=>{
       const t=new Date(); const y=String(t.getFullYear()); const m=String(t.getMonth()+1).padStart(2,"0"); const d=String(t.getDate()).padStart(2,"0");
       yearEl.value=y; monthEl.value=m; dayEl.value=d; nativeDate.value=`${y}-${m}-${d}`;
+      updateSubscriptionHint();
     });
   }
   if (btnCalendar && nativeDate && yearEl && monthEl && dayEl){
@@ -434,8 +478,20 @@ const initAddPanel = () => {
     nativeDate.addEventListener("change", ()=>{
       if(!nativeDate.value) return;
       const parts=nativeDate.value.split("-"); if(parts.length===3){ yearEl.value=parts[0]; monthEl.value=parts[1]; dayEl.value=parts[2]; }
+      updateSubscriptionHint();
     });
   }
+
+  // 날짜 직접 수정 시에도 안내 문구 업데이트
+  [yearEl, monthEl, dayEl].forEach(el => {
+    if (el) el.addEventListener("input", updateSubscriptionHint);
+  });
+
+  // 카테고리 변경 시 안내 문구 업데이트
+  if (categorySelect) {
+    categorySelect.addEventListener("change", updateSubscriptionHint);
+  }
+
   if (scoreGroup && scoreInput){
     const buttons = scoreGroup.querySelectorAll(".score-btn");
     buttons.forEach(b=>b.addEventListener("click", ()=>{
@@ -495,6 +551,10 @@ const initAddPanel = () => {
             memoField.value = data.raw_text.slice(0,120)+"...";
           }
         }
+
+        // OCR 후에도 구독 안내 문구 갱신 (카테고리가 변경되었을 수 있으므로)
+        updateSubscriptionHint();
+
         showToast("영수증에서 내용을 불러왔어요. 확인 후 저장해 주세요!");
       }catch(err){
         console.error("OCR error:", err);
