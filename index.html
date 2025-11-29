@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Open Wallet - Home Demo</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="CSS/styles.css" />
 </head>
 <body>
   <div id="app-root">
@@ -23,7 +23,7 @@
     <span class="logo-title bold">Open</span>
     <span class="logo-title bold">Wallet</span>
   </div>
- <button class="profile-btn" type="button">
+ <button class="profile-btn" type="button" onclick="location.href='Profile.html'">
   <div class="profile-icon">
     <img src="assets/profile-jjeong.png" alt="사용자 프로필 이미지" />
   </div>
@@ -51,7 +51,7 @@
                   <p class="label">이번달 지출</p>
                   <p class="amount">0<span class="unit">원</span></p>
                 </div>
-                <button class="small-btn" type="button" id="btn-record-open">지출 요약 보기</button>
+                <button class="small-btn" type="button" id="btn-record-open">지출 기록 보기</button>
               </div>
               <p class="sub-label">예산 달성률 <span class="point">0%</span></p>
               <div class="budget-bar"><div class="budget-bar-fill"></div></div>
@@ -319,6 +319,7 @@
   </section>
 </section>
 
+
       </main>
 
       <!-- 하단 네비게이션 -->
@@ -368,6 +369,6 @@
   </div>
 
   <!-- JS -->
-  <script src="./app.js"></script>
+  <script src="Js/app.js"></script>
 </body>
 </html>

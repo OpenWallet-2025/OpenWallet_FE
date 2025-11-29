@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Wallet - Profile</title>
+
+  <!-- 프로필 전용 CSS -->
+  <link rel="stylesheet" href="CSS/profile.css" />
+</head>
+<body>
+  <div id="app-root">
+    <div class="app-shell">
+      <!-- 헤더: 메인과 동일 -->
+      <header class="top-header">
+        <div class="logo-area">
+          <img src="assets/turtle-mascot.png" alt="Open Wallet Logo" class="logo-img" />
+          <span class="logo-title bold">Open</span>
+          <span class="logo-title bold">Wallet</span>
+        </div>
+        <button class="profile-btn" type="button" onclick="location.href='Profile.html'">
+          <div class="profile-icon">
+            <img src="assets/profile-jjeong.png" alt="사용자 프로필 이미지" />
+          </div>
+        </button>
+      </header>
+
+      <main class="content">
+
+      <!-- 내 프로필 -->
+      <section class="profile-section">
+        <div class="profile-card">
+          <div class="profile-card-inner">
+            <div class="profile-section-header">
+              <h2 class="profile-section-title">내 프로필</h2>
+              <!-- ✅ 프로필 수정 버튼에 id 추가 -->
+              <button type="button" class="text-icon-btn" id="profileEditBtn">
+                <img src="img/profileEdit.png" alt="" class="icon-img" />
+                <span>프로필 수정</span>
+              </button>
+            </div>
+
+            <!-- ✅ 표시용 영역 -->
+            <div class="profile-info" id="profileView">
+              <p>
+                <span class="profile-label">이름:</span>
+                <span id="profileNameDisplay">사용자1</span>
+              </p>
+              <p>
+                <span class="profile-label">예산 목표:</span>
+                <span id="profileBudgetDisplay">850,000원</span>
+              </p>
+              <p>
+                <span class="profile-label">소비 유형:</span>
+                <span id="profileTypeDisplay">중도형 소비자</span>
+              </p>
+            </div>
+
+            <!-- ✅ 수정용 폼 (처음엔 숨김) -->
+            <form id="profileEditForm" class="profile-edit-form" style="display: none;">
+              <div class="profile-edit-row">
+                <label for="profileNameInput" class="profile-edit-label">이름</label>
+                <input
+                  id="profileNameInput"
+                  type="text"
+                  class="profile-edit-input"
+                  placeholder="이름을 입력하세요"
+                />
+              </div>
+
+              <div class="profile-edit-row">
+                <label for="profileBudgetInput" class="profile-edit-label">예산 목표 (원)</label>
+                <input
+                  id="profileBudgetInput"
+                  type="number"
+                  min="0"
+                  class="profile-edit-input"
+                  placeholder="예: 850000"
+                />
+              </div>
+
+              <div class="profile-edit-row">
+                <label for="profileTypeInput" class="profile-edit-label">소비 유형</label>
+                <input
+                  id="profileTypeInput"
+                  type="text"
+                  class="profile-edit-input"
+                  placeholder="예: 중도형 소비자"
+                />
+              </div>
+
+              <div class="profile-edit-actions">
+                <button type="submit" class="profile-save-btn">저장</button>
+                <button type="button" class="profile-cancel-btn" id="profileEditCancelBtn">
+                  취소
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- 정기지출 -->
+      <section class="profile-section">
+        <div class="profile-card">
+          <div class="profile-card-inner">
+            <div class="profile-section-header">
+              <h2 class="profile-section-title">정기지출</h2>
+              <div class="favorite-actions">
+                <button type="button" class="text-icon-btn">
+                  <img src="img/star.png" alt="" class="icon-img" />
+                  <span>정기지출 추가</span>
+                </button>
+                <button type="button" class="text-icon-btn">
+                  <img src="img/delete.png" alt="" class="icon-img" />
+                  <span>정기지출 삭제</span>
+                </button>
+              </div>
+            </div>
+
+            <ul class="favorite-list">
+              <li class="favorite-item">
+                <p class="favorite-name">상품명: 커피</p>
+                <p class="favorite-meta">날짜: 매월 28일, 금액: 4,900원, 카테고리: 식비</p>
+              </li>
+              <li class="favorite-item">
+                <p class="favorite-name">상품명: 챗지피티</p>
+                <p class="favorite-meta">날짜: 매월 20일, 금액: 32,751원, 카테고리: 기타</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+        <!-- 즐겨찾기 -->
+        <section class="profile-section">
+          <div class="profile-card">
+            <div class = "profile-card-inner">
+            <div class="profile-section-header">
+              <h2 class="profile-section-title">즐겨찾기</h2>
+              <div class="favorite-actions">
+                <button type="button" class="text-icon-btn">
+                  <img src="img/star.png" alt="" class="icon-img" />
+                  <span>즐겨찾기 추가</span>
+                </button>
+                <button type="button" class="text-icon-btn">
+                  <img src="img/delete.png" alt="" class="icon-img" />
+                  <span>즐겨찾기 삭제</span>
+                </button>
+              </div>
+            
+            </div>
+            <ul class="favorite-list">
+              <li class="favorite-item">
+                <p class="favorite-name">상품명: 커피</p>
+                <p class="favorite-meta">금액: 4,900원, 카테고리: 식비</p>
+              </li>
+              <li class="favorite-item">
+                <p class="favorite-name">상품명: 챗지피티</p>
+                <p class="favorite-meta">금액: 32,751원, 카테고리: 기타</p>
+              </li>
+            </ul>
+          </div>
+          </div>
+        </section>
+
+        <!-- 설정 -->
+        <section class="profile-section">
+          <div class="profile-card">
+            <div class = "profile-card-inner">
+            <h2 class="profile-section-title">설정</h2>
+
+            <div class="setting-row">
+              <span class="setting-label">OCR 자동 입력 설정</span>
+              <div class="toggle-group">
+                <button type="button" class="toggle-btn toggle-btn-active">ON</button>
+                <button type="button" class="toggle-btn">OFF</button>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <span class="setting-label">알림 설정</span>
+              <div class="toggle-group">
+                <button type="button" class="toggle-btn toggle-btn-active">ON</button>
+                <button type="button" class="toggle-btn">OFF</button>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <span class="setting-label">테마</span>
+              <div class="toggle-group">
+                <button type="button" class="toggle-btn toggle-btn-active">라이트</button>
+                <button type="button" class="toggle-btn">다크</button>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <span class="setting-label">데이터 내보내기</span>
+              <div class="toggle-group">
+                <button type="button" class="toggle-btn toggle-btn-active">CSV</button>
+                <button type="button" class="toggle-btn">이미지</button>
+              </div>
+            </div>
+            <button
+        type="button"
+        class="back-home-btn"
+        onclick="location.href='index.html'"
+      >
+        홈으로 돌아가기
+      </button>
+          </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+  
+
+  <script src="Js/Profile.js"></script>
+</body>
+</html>

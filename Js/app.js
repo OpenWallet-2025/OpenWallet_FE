@@ -3,12 +3,44 @@
    ========================= */
 
 /* ---- 전역 상수 ---- */
-const API_BASE_URL = "http://localhost:8001";
+const API_BASE_URL = "http://openwallet2025.com/api";
 const OCR_RECEIPT_URL = `${API_BASE_URL}/ocr-receipt`;
 const TRENDS_SUMMARY_URL = `${API_BASE_URL}/trends/summary`;
+const CATEGORY_ENUM_TO_KR = {
+      "FOOD": "식비",
+      "LIVING": "생활",
+      "TRANSPORT": "교통비",
+      "HEALTH": "의료·건강",
+      "CULTURE": "취미·문화생활",
+      "EDUCATION": "교육·자기계발",
+      "CLOTHING": "의류",
+      "ETC": "기타",
+      "SUBSCRIBE": "정기지출"
+    };
+
+const CATEGORY_KR_TO_ENUM = {
+      "식비": "FOOD",
+      "생활": "LIVING",
+      "의료·건강": "HEALTH",
+      "교육·자기계발": "EDUCATION",
+      "의류": "CLOTHING",
+      "교통비": "TRANSPORT",
+      "취미·문화생활": "CULTURE",
+      "기타": "ETC",
+      "정기지출": "SUBSCRIBE"
+    };
+
+// 🔗 Swagger에 정의된 엔드포인트 (실제 path는 Swagger 보고 수정!)
+const TX_LIST_URL       = `${API_BASE_URL}/expenses`;   // GET /expenses
+const TX_CREATE_URL     = `${API_BASE_URL}/expenses`;   // POST /expenses
+
+// 아래 둘은 Swagger에 없으니 당장은 미사용/추후 구현
+const MONTH_SUMMARY_URL = `${API_BASE_URL}/summary/monthly`;  // (백엔드에서 만들면 사용)
+const REPORT_CHAT_URL   = `${API_BASE_URL}/report/chat`;      // (AI 리포트용, 나중에)
+
 
 /* ---- 데모 데이터/상수 ---- */
-const TX = [
+let TX = [
   { date: "2025-11-01", cat: "식비", amount: 26000 },
   { date: "2025-11-02", cat: "취미·문화생활", amount: 54000 },
   { date: "2025-11-03", cat: "교통비", amount: 21000 },
@@ -19,7 +51,31 @@ const TX = [
   { date: "2025-11-08", cat: "취미·문화생활", amount: 67000 },
   { date: "2025-11-09", cat: "식비", amount: 28000 }
 ];
-const BUDGET = 850000;
+let BUDGET = 850000;
+// 🔹 프로필 localStorage 연동 (예산 공유용)
+const PROFILE_STORAGE_KEY = "ow_profile";
+
+/** localStorage에서 프로필 예산 가져오기 */
+function loadProfileBudget() {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (!raw) return null;
+
+    const data = JSON.parse(raw);
+
+    if (typeof data.budget === "number") {
+      return data.budget;
+    }
+    if (typeof data.budget === "string") {
+      const n = parseInt(data.budget.replace(/[^0-9]/g, ""), 10);
+      return isNaN(n) ? null : n;
+    }
+    return null;
+  } catch (e) {
+    console.error("[profile] budget load error:", e);
+    return null;
+  }
+}
 
 const EMOTION_RATIO = { HAPPY:40, EXCITED:10, SAD:10, ANGRY:5, STRESSED:25, NEUTRAL:10 };
 const EMOTION_LABELS = {
@@ -37,7 +93,17 @@ const EMOTION_COMMENTS = {
 const EMOTION_EMOJIS = { HAPPY:"😊", EXCITED:"🤩", SAD:"😢", ANGRY:"😡", STRESSED:"😣", NEUTRAL:"😐" };
 const EMOTION_KEYS = ["HAPPY","EXCITED","SAD","ANGRY","STRESSED","NEUTRAL"];
 
-const CATEGORY_EMOJI = { "식비":"☕", "취미·문화생활":"🎮", "교통비":"🚗", "기타":"🛍️" };
+const CATEGORY_EMOJI = {
+  "식비": "🍚",          // FOOD
+  "생활": "🏠",          // LIVING
+  "교통비": "🚗",        // TRANSPORT
+  "의료·건강": "⚕️",     // HEALTH
+  "취미·문화생활": "🎨",  // CULTURE
+  "교육·자기계발": "📘",  // EDUCATION
+  "의류": "👕",          // CLOTHING
+  "기타": "🛍️",          // ETC
+  "정기구독": "🧾"        // SUBSCRIBE
+};
 TX.forEach((t, i) => { t.emotion = EMOTION_KEYS[i % EMOTION_KEYS.length]; });
 
 const CONSUMER_TYPES = {
@@ -52,7 +118,95 @@ const DEFAULT_CONSUMER_TYPE = { label:"균형잡힌", badge:"🧾", sub:"아직 
 const slidePanel   = document.getElementById("addPanel");
 const slideContent = document.getElementById("addPanelContent");
 
+/* 지출 기록 패널 (오버레이) */
+let recordPanel = null;
+let recordContent = null;
+
 /* ---- 유틸 ---- */
+/* =============== Swagger API 래퍼 ================== */
+const API = {
+  //=========================
+  /** 이번 달 지출 목록 불러오기 */
+  async getMonthlyTx(year, month) {
+  // Swagger: GET /expenses (파라미터 없음)
+  const res = await fetch(TX_LIST_URL);
+  if (!res.ok) throw new Error(`getMonthlyTx HTTP ${res.status}`);
+  const all = await res.json();
+
+  // 🔹 여기서 year, month 기준으로 필터링
+  const monthStr = String(month).padStart(2, "0");
+  const filtered = Array.isArray(all)
+    ? all.filter((t) => {
+        // 응답 예시: { id, title, date, price, category, emotion, memo, satisfaction }
+        if (!t.date) return false;
+        const [y, m] = String(t.date).split("-");
+        return String(y) === String(year) && m === monthStr;
+      })
+    : [];
+
+  return filtered;
+}//=======================
+,
+
+  /** 이번 달 요약(총 지출, 예산 등) 불러오기 */
+  async getMonthSummary(year, month) {
+    const url = `${MONTH_SUMMARY_URL}?year=${year}&month=${String(month).padStart(2, "0")}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`getMonthSummary HTTP ${res.status}`);
+    return res.json();
+  },
+
+  /** 지출 한 건 저장 */
+  async createTx(payload) {
+    console.log("▶ POST /expenses payload =", payload);   // 디버그용
+    const res = await fetch(TX_CREATE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+    let errText = "";
+    try {
+      errText = await res.text();
+    } catch (e) {
+      // 아무 것도 못 읽을 수도 있음
+    }
+    console.error("❌ createTx fail:", res.status, errText);
+    throw new Error(`createTx HTTP ${res.status} ${errText}`);
+  }
+    return res.json();
+  },
+
+  /** AI 리포트 질문 */
+  async askReport(question) {
+    const res = await fetch(REPORT_CHAT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }), // ⚠️ Swagger에서 body 스키마 확인
+    });
+    if (!res.ok) throw new Error(`askReport HTTP ${res.status}`);
+    return res.json();
+  },
+
+
+  /** 지출 한 건 삭제 */
+  async deleteTx(id) {
+    const url = `${TX_CREATE_URL}/${encodeURIComponent(id)}`; // /expenses/{id}
+    const res = await fetch(url, { method: "DELETE" });
+
+    if (!res.ok) {
+      let errText = "";
+      try {
+        errText = await res.text();
+      } catch (e) {}
+      console.error("❌ deleteTx fail:", res.status, errText);
+      throw new Error(`deleteTx HTTP ${res.status} ${errText}`);
+    }
+    return true;
+  }
+};
+/*-----------*/
+
 const clampText = (t, m) => t.length > m ? t.slice(0, m - 1) + "…" : t;
 const generateColors = (count) => {
   const out = []; for (let i=0;i<count;i++){ const h=Math.round((i*360)/(count||1)); out.push(`hsl(${h},70%,60%)`);} return out;
@@ -76,6 +230,52 @@ const aggregateByCategory = () => {
   const values = Array.from(sums.values());
   return { labels, values, total: values.reduce((a,b)=>a+b,0) };
 };
+
+/** ============== 서버에서 이번 달 지출 + 요약 불러와서 상태 갱신 ================*/
+async function loadMonthlyData(year, month) {
+  try {
+    const [txList, summary] = await Promise.all([
+      API.getMonthlyTx(year, month),
+      API.getMonthSummary(year, month).catch(() => null),
+    ]);
+
+    // 🔹 Swagger 응답 형식에 맞게 필드 이름 매핑 + 카테고리 한국어 변환
+    if (Array.isArray(txList) && txList.length) {
+      TX = txList.map((t) => {
+        // t.category: "FOOD", "TRANSPORT" 같은 ENUM이 온다고 가정
+        const catKr = CATEGORY_ENUM_TO_KR[t.category] || t.category || "기타";
+
+        return {
+          id: t.id,                // 나중에 삭제/수정할 때 필요
+          date: t.date,            // "2025-11-29"
+          title: t.title || " ",
+          cat: catKr,              // ✅ 이후 UI는 전부 한국어 카테고리 사용
+          amount: t.price,         // 금액
+          emotion: t.emotion || "", 
+          memo: t.memo || "",
+          satisfaction: t.satisfaction ?? null,
+        };
+      });
+    } else {
+      console.log("⚠️ 서버에서 지출 내역이 비어 있어서 데모 TX 유지");
+    }
+
+    // 예산 정보가 내려오면 BUDGET 업데이트
+    if (summary && typeof summary.budget === "number") {
+      BUDGET = summary.budget;
+    }
+  } catch (err) {
+    console.error("loadMonthlyData error:", err);
+    showToast("서버에서 데이터를 불러오지 못해서 데모 데이터를 사용합니다.");
+  } finally {
+    // 항상 UI 다시 그리기
+    renderHomeCategoryChart();
+    renderEmotionChart();
+    renderCalendar();
+  }
+}
+
+/* ==========*/
 
 /* ---- 소비자 타입 표시 ---- */
 const updateConsumerType = (topCat) => {
@@ -288,6 +488,241 @@ const updateEmotionDetail = (emotionKey, labelText, ratioText) => {
   modal.classList.add("show");
 };
 
+/* ================== 지출 기록 패널 ================== */
+
+/** 필요하면 record-panel DOM을 생성하는 함수 */
+function ensureRecordPanel() {
+  if (recordPanel && recordContent) return;
+
+  // 혹시 HTML에 이미 만들어둔 게 있다면 먼저 찾아봄
+  recordPanel =
+    document.getElementById("record-panel") ||
+    document.getElementById("recordPanel");
+  recordContent =
+    document.getElementById("record-content") ||
+    document.getElementById("recordContent");
+
+  // 없다면 JS로 새로 만들어서 body에 붙임
+  if (!recordPanel) {
+    recordPanel = document.createElement("div");
+    recordPanel.id = "record-panel";
+    recordPanel.className = "record-panel";
+
+    recordPanel.innerHTML = `
+      <div class="record-panel-inner" id="record-content"></div>
+    `;
+
+    document.body.appendChild(recordPanel);
+    recordContent = document.getElementById("record-content");
+  }
+
+  // 오버레이 바깥 클릭하면 닫기
+  recordPanel.addEventListener("click", (e) => {
+    if (e.target === recordPanel) {
+      closeRecordPanel();
+    }
+  });
+}
+
+/** 날짜/시간 포맷 헬퍼 */
+function formatDateTimeParts(dateStr) {
+  if (!dateStr) return { date: "-", time: "-" };
+
+  let d = new Date(dateStr);
+  if (isNaN(d.getTime())) {
+    d = new Date(`${dateStr}T00:00:00`);
+  }
+  if (isNaN(d.getTime())) return { date: String(dateStr), time: "-" };
+
+  const yyyy = d.getFullYear();
+  const mm   = String(d.getMonth() + 1).padStart(2, "0");
+  const dd   = String(d.getDate()).padStart(2, "0");
+  const hh   = String(d.getHours()).padStart(2, "0");
+  const mi   = String(d.getMinutes()).padStart(2, "0");
+
+  return {
+    date: `${yyyy}-${mm}-${dd}`,
+    time: `${hh}:${mi}`,
+  };
+}
+
+/** 지출 기록 패널 내용 렌더링 */
+function renderRecordPanel() {
+  ensureRecordPanel();
+  if (!recordContent) return;
+
+  const total = TX.reduce((sum, t) => sum + (t.amount || 0), 0);
+  const percent =
+    BUDGET > 0 ? ((total / BUDGET) * 100).toFixed(1) : "0.0";
+
+  if (!TX.length) {
+    recordContent.innerHTML = `
+      <header class="record-header">
+        <h1>지출 기록</h1>
+        <button type="button" class="record-close-btn" id="recordCloseBtn">닫기</button>
+      </header>
+      <section class="record-summary">
+        <div class="record-summary-main">
+          <span class="record-summary-label">이번 달 지출 합계</span>
+          <span class="record-summary-amount">0원</span>
+        </div>
+        <div class="record-summary-sub">
+          예산 ${BUDGET.toLocaleString()}원 대비 달성률
+          <strong>0.0%</strong>
+        </div>
+      </section>
+      <ul class="record-list">
+        <li class="record-empty">아직 기록된 지출이 없습니다.</li>
+      </ul>
+    `;
+  } else {
+    const itemsHtml = TX
+      .slice()
+      .sort((a, b) => {
+        const da = new Date(a.date || 0).getTime();
+        const db = new Date(b.date || 0).getTime();
+        return db - da; // 최신순
+      })
+      .map((t) => {
+        const { date } = formatDateTimeParts(t.date);
+        const title = t.title || `${t.cat || "지출"} 소비`;
+        const cat = t.cat || "-";
+        const amount = (t.amount || 0).toLocaleString();
+        const emoKey = t.emotion || "";
+        const emoLabel = emoKey ? (EMOTION_LABELS[emoKey] || emoKey) : "";
+        const emoEmoji = emoKey ? (EMOTION_EMOJIS[emoKey] || "") : "";
+        const memo = t.memo ? escapeHtml(String(t.memo)) : "";
+        const satisfaction = (t.satisfaction ?? null);
+
+        return `
+      <li class="record-item" data-id="${t.id ?? ""}">
+
+        <!-- 날짜 -->
+        <div class="record-item-date-only">${date}</div>
+
+        <!-- 이름 / 가격 (+ 삭제 버튼) -->
+        <div class="record-item-line">
+          <span class="item-title">${escapeHtml(String(title))}</span>
+          <div class="item-right">
+            <span class="item-price">${amount}원</span>
+            <button type="button" class="item-delete-btn" data-id="${t.id ?? ""}" aria-label="삭제">
+              <img src="img/delete.png" alt="삭제" class="item-delete-icon" />
+            </button>
+          </div>
+        </div>
+
+        <!-- 카테고리 / 감정 / 만족도 -->
+        <div class="record-item-meta-line">
+          <span class="item-cat">
+            ${CATEGORY_EMOJI[cat] || "💳"} ${escapeHtml(String(cat))}
+          </span>
+
+          ${
+            emoKey
+              ? `<span class="item-emo">${emoEmoji} ${escapeHtml(emoLabel)}</span>`
+              : ""
+          }
+
+          ${
+            satisfaction != null
+              ? `<span class="item-sat">만족도 ${satisfaction}/5</span>`
+              : ""
+          }
+        </div>
+
+        ${
+          memo
+            ? `<div class="record-item-memo-line">메모 내용: ${memo}</div>`
+            : ""
+        }
+
+      </li>
+    `;
+      })
+      .join("");
+
+    recordContent.innerHTML = `
+      <header class="record-header">
+        <h1>지출 기록</h1>
+        <button type="button" class="record-close-btn" id="recordCloseBtn">지출 기록 닫기</button>
+      </header>
+      <section class="record-summary">
+        <div class="record-summary-main">
+          <span class="record-summary-label">이번 달 지출 합계</span>
+          <span class="record-summary-amount">${total.toLocaleString()}원</span>
+        </div>
+        <div class="record-summary-sub">
+          예산 ${BUDGET.toLocaleString()}원 대비 달성률
+          <strong>${percent}%</strong>
+        </div>
+      </section>
+      <ul class="record-list">
+        ${itemsHtml}
+      </ul>
+    `;
+  }
+
+  // 닫기 버튼
+  const closeBtn = document.getElementById("recordCloseBtn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      const panel = document.getElementById("record-panel");
+      if (panel) panel.classList.remove("show");
+    });
+  }
+
+  // 삭제 버튼(이벤트 위임) — 여러 번 등록되지 않게 플래그 사용
+  if (!recordContent.__owDeleteBound) {
+    recordContent.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".item-delete-btn");
+      if (!btn) return;
+
+      const id = btn.dataset.id;
+      if (!id) {
+        showToast("이 기록은 서버 ID가 없어 삭제할 수 없습니다.");
+        return;
+      }
+
+      if (!confirm("이 지출 기록을 삭제할까요?")) return;
+
+      try {
+        await API.deleteTx(id);
+
+        // 로컬 상태에서 제거
+        TX = TX.filter((t) => String(t.id) !== String(id));
+
+        // UI 다시 그림
+        renderRecordPanel();
+        renderHomeCategoryChart();
+        renderEmotionChart();
+        renderCalendar();
+
+        showToast("지출 기록이 삭제되었습니다.");
+      } catch (err) {
+        console.error("deleteTx error:", err);
+        showToast("삭제 중 오류가 발생했습니다.");
+      }
+    });
+
+    recordContent.__owDeleteBound = true;
+  }
+}
+
+/** 패널 열기 */
+function openRecordPanel() {
+  ensureRecordPanel();
+  renderRecordPanel();
+  if (recordPanel) {
+    recordPanel.classList.add("show");
+  }
+}
+
+/** 패널 닫기 */
+function closeRecordPanel() {
+  if (!recordPanel) return;
+  recordPanel.classList.remove("show");
+}
+
 /* ---- 페이지 전환 ---- */
 const switchPage = (pageId) => {
   const pages = document.querySelectorAll(".page");
@@ -327,17 +762,47 @@ const handleReportQuestion = (q) => {
       Object.keys(EMOTION_RATIO).map(k=>`${EMOTION_LABELS[k]} ${EMOTION_RATIO[k]}%`).join(", ") +
       " 입니다.<br /><br />특히 <b>"+EMOTION_LABELS["STRESSED"]+"</b>와 <b>"+EMOTION_LABELS["HAPPY"]+
       "</b> 비중이 눈에 띄는데요,<br />스트레스 소비는 상한선을 정해두고, 행복 소비는 예산 안에서 이어갈 수 있도록 분리해서 관리해보면 좋아요.";
+  //===================================
   } else {
-    answer = "이 질문은 데모 모드라서 아주 자세한 분석은 어렵지만,\n실제 서비스에서는 질문 내용을 해석해서 <b>카테고리별 지출, 예산 초과 가능성, 감정 태그</b>를 종합해\n맞춤형 리포트를 생성할 예정이에요. 😊";
+    // 나머지 질문들은 백엔드 AI 리포트 API에 위임
+    const fallback = "서버 분석 중 오류가 나면, 이 메시지로 대체할 예정이에요. (데모 모드)";
+    // 로딩 느낌만 간단히 표시 (선택)
+    appendChatBubble("ai", "질문을 분석 중이에요… (서버 호출)");
+
+    API.askReport(q)
+      .then((res) => {
+        // Swagger 응답 형식에 맞게 텍스트 꺼내기
+        const raw =
+          res.answer ||
+          res.message ||
+          res.text ||
+          JSON.stringify(res, null, 2);
+
+        // 서버 응답은 HTML 인젝션 위험 있으니 escape
+        const safe = escapeHtml(String(raw));
+        appendChatBubble("ai", safe);
+      })
+      .catch((err) => {
+        console.error("askReport error:", err);
+        appendChatBubble(
+          "ai",
+          fallback
+        );
+      });
+
+    return; // 아래 setTimeout 실행 안 되게 여기서 종료
   }
-  setTimeout(()=>appendChatBubble("ai", answer), 300);
-};
+
+  setTimeout(() => appendChatBubble("ai", answer), 300);
+}
+//==================================
+;
 
 /* ---- 지출 추가 패널 ---- */
 const openAddPanel  = () => { if(!slidePanel||!slideContent) return; initAddPanel(); slidePanel.classList.add("show"); };
 const closeAddPanel = () => { if(!slidePanel) return; slidePanel.classList.remove("show"); };
 
-const initAddPanel = () => {
+const initAddPanel = () =>{ 
   const now = new Date(); const yyyy=String(now.getFullYear()); const mm=String(now.getMonth()+1).padStart(2,"0"); const dd=String(now.getDate()).padStart(2,"0");
   slideContent.innerHTML = `
     <header class="add-header"><h1>지출 추가</h1></header>
@@ -370,15 +835,16 @@ const initAddPanel = () => {
         <div class="add-category-row">
           <select id="add-category" class="add-select">
             <option value="식비">식비</option><option value="생활">생활</option><option value="교통비">교통비</option>
-            <option value="취미·문화생활">취미·문화생활</option><option value="기타">기타</option>
+            <option value="의료·건강">의료·건강</option><option value="교육·자기계발">교육·자기계발</option><option value="의류">의류</option>
+            <option value="취미·문화생활">취미·문화생활</option><option value="기타">기타</option><option value="정기구독">정기구독</option>
           </select>
         </div>
       </div>
       <div class="add-field">
         <label class="add-label" for="add-emotion">감정 태그</label>
         <select id="add-emotion" class="add-select">
-          <option value="">미선택</option><option value="HAPPY">행복</option><option value="EXCITED">들뜸</option>
-          <option value="SAD">우울</option><option value="ANGRY">화남</option><option value="STRESSED">스트레스</option><option value="NEUTRAL">무감정</option>
+          <option value="NEUTRAL">무감정</option><option value="HAPPY">행복</option><option value="EXCITED">들뜸</option>
+          <option value="SAD">우울</option><option value="ANGRY">화남</option><option value="STRESSED">스트레스</option>
         </select>
       </div>
       <div class="add-field">
@@ -506,7 +972,77 @@ const initAddPanel = () => {
   }
 
   if (cancelBtn){ cancelBtn.addEventListener("click", (e)=>{ e.preventDefault(); closeAddPanel(); }); }
-  if (form){ form.addEventListener("submit", (e)=>{ e.preventDefault(); showToast("Demo: 지출이 추가되었다고 가정하고, 차트에 반영될 예정이에요."); closeAddPanel(); }); }
+  /*=========================*/
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nameInput   = document.getElementById("add-name");
+      const yearEl      = document.getElementById("add-date-year");
+      const monthEl     = document.getElementById("add-date-month");
+      const dayEl       = document.getElementById("add-date-day");
+      const amountInput = document.getElementById("add-amount");
+      const catSelect   = document.getElementById("add-category");
+      const emoSelect   = document.getElementById("add-emotion");
+      const memoInput   = document.getElementById("add-memo");
+      const scoreInput  = document.getElementById("add-score");
+
+      const name   = nameInput?.value?.trim() || "";
+      const year   = yearEl?.value || "";
+      const month  = monthEl?.value || "";
+      const day    = dayEl?.value || "";
+      const date   = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      const amount = parseInt((amountInput?.value || "0").replace(/[^0-9]/g, ""), 10) || 0;
+      const catKr  = catSelect?.value || "기타";     // 한국어 값 ("식비" 등)
+      const emotion= emoSelect?.value || null;
+      const memo   = memoInput?.value?.trim() || "";
+      const scoreRaw = scoreInput?.value || "";
+      if (!scoreRaw) {
+        showToast("만족도를 선택해주세요");
+        return;
+      }
+      const score = parseInt(scoreRaw, 10);
+
+      if (!year || !month || !day) {
+        showToast("날짜를 입력해 주세요.");
+        return;
+      }
+      if (!amount || amount <= 0) {
+        showToast("금액을 0보다 크게 입력해 주세요.");
+        return;
+      }
+
+      // ✅ 백엔드 ENUM으로 변환 (한국어 → 영어)
+      const categoryEnum = CATEGORY_KR_TO_ENUM[catKr] || "ETC";
+
+      // 🔹 Swagger POST /expenses 스펙에 맞게 body 구성
+      const payload = {
+        title: name,
+        date,
+        price: amount,
+        category: categoryEnum,   // ✅ 이제 영어 ENUM으로 전송
+
+        emotion: emotion,
+        memo: memo,
+        satisfaction: score
+      };
+
+      try {
+        await API.createTx(payload);
+        showToast("지출이 저장되었습니다.");
+        closeAddPanel();
+
+        // 방금 추가한 날짜 기준으로 다시 불러오기
+        const d = new Date(`${date}T00:00:00`);
+        await loadMonthlyData(d.getFullYear(), d.getMonth() + 1);
+      } catch (err) {
+        console.error("createTx error:", err);
+        showToast("지출 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      }
+    });
+  }
+
+/*=========================*/
 };
 
 /* ---- 트렌드 페이지 ---- */
@@ -596,11 +1132,24 @@ function initTrendPage(){
 }
 
 /* ---- 홈 초기화 ---- */
-function initHome(){
-  renderHomeCategoryChart();
-  renderEmotionChart();
+async function initHome() {
+  // 0) 프로필에서 예산 불러와서 BUDGET 덮어쓰기
+  const profileBudget = loadProfileBudget();
+  if (profileBudget != null && profileBudget > 0) {
+    BUDGET = profileBudget;
+    console.log("[profile] BUDGET synced from profile:", BUDGET);
+  }
+
+  // 1) 캘린더 버튼 이벤트 & 기본 렌더 설정
   initCalendar();
 
+  // 2) 오늘 기준으로 서버 데이터(이번 달) 불러오기
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  await loadMonthlyData(y, m);
+
+  // 3) 나머지 기존 initHome 내용 그대로 유지
   const summaryView  = document.getElementById("summaryView");
   const calendarCard = document.getElementById("calendarCard");
   const tabBtns = document.querySelectorAll(".view-tab");
@@ -612,19 +1161,25 @@ function initHome(){
       btn.addEventListener("click", ()=>{
         const view = btn.dataset.view;
         tabBtns.forEach(b=>b.classList.toggle("active", b===btn));
-        if (view==="calendar"){ summaryView.style.display="none"; calendarCard.classList.add("active"); calendarCard.style.display="block"; }
-        else { summaryView.style.display="block"; calendarCard.classList.remove("active"); calendarCard.style.display="none"; }
+        if (view==="calendar"){
+          summaryView.style.display="none";
+          calendarCard.classList.add("active");
+          calendarCard.style.display="block";
+        } else {
+          summaryView.style.display="block";
+          calendarCard.classList.remove("active");
+          calendarCard.style.display="none";
+        }
       });
     });
   }
 
-  const recordOpenBtn = document.getElementById("btn-record-open");
-  if (recordOpenBtn){
-    recordOpenBtn.addEventListener("click", ()=>{
-      const data = aggregateByCategory(); const total = data.total; const percent = ((total/BUDGET)*100).toFixed(1);
-      showToast(`이번 달 지출 ${total.toLocaleString()}원 · 예산 달성률 ${percent}%`);
-    });
-  }
+    const recordOpenBtn = document.getElementById("btn-record-open");
+    if (recordOpenBtn) {
+      recordOpenBtn.addEventListener("click", () => {
+        openRecordPanel();
+      });
+    }
 
   const emotionCards = document.querySelectorAll(".emotion-card");
   const modal = document.getElementById("emotionModal");
@@ -660,8 +1215,18 @@ function initHome(){
   const sendBtn = document.getElementById("reportSendBtn");
   const chips = document.querySelectorAll(".report-chip");
   if (sendBtn && input){
-    sendBtn.addEventListener("click", ()=>{ handleReportQuestion(input.value); input.value=""; input.focus(); });
-    input.addEventListener("keydown", (e)=>{ if (e.key==="Enter"){ handleReportQuestion(input.value); input.value=""; } });
+    sendBtn.addEventListener("click", ()=>{
+      handleReportQuestion(input.value);
+      input.value="";
+      input.focus();
+    });
+    input.addEventListener("keydown", (e)=>{
+      if (e.key==="Enter"){
+        e.preventDefault();
+        handleReportQuestion(input.value);
+        input.value="";
+      }
+    });
   }
   chips.forEach(chip=> chip.addEventListener("click", ()=> handleReportQuestion(chip.getAttribute("data-q")||"") ));
 }
