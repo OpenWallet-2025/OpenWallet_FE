@@ -1,104 +1,124 @@
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-    :root {
-      --ow-green: #76f36b;
-      --ow-green-strong: #22c55e;
-      --ow-bg: #050816;
-      --ow-card-bg: rgba(17, 24, 39, 0.82);
-      --ow-card-border: rgba(148, 163, 184, 0.45);
-      --ow-text-main: #f9fafb;
-      --ow-text-sub: #9ca3af;
-      --ow-radius-lg: 18px;
-    }
+:root {
+  --ow-green: #76f36b;
+  --ow-green-strong: #22c55e;
+  --ow-bg: #050816;
+  --ow-card-bg: rgba(17, 24, 39, 0.82);
+  --ow-card-border: rgba(148, 163, 184, 0.45);
+  --ow-text-main: #f9fafb;
+  --ow-text-sub: #9ca3af;
+  --ow-radius-lg: 18px;
+}
 
-    body {
-      margin: 0;
-      font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100vh;
-      color: var(--ow-text-main);
-      background: radial-gradient(circle at top, #22c55e33 0, #020617 55%);
-      position: relative;
-      display: block;
-      overflow: auto;
-    }
+/* 전체 배경 */
+body {
+  margin: 0;
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  min-height: 100vh;
+  color: var(--ow-text-main);
+  background: radial-gradient(circle at top, #22c55e33 0, #020617 55%);
+  position: relative;
+  display: block;
+  overflow: auto;
+}
 
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      width: 420px;
-      height: 420px;
-      border-radius: 999px;
-      filter: blur(60px);
-      opacity: 0.6;
-      z-index: -1;
-      pointer-events: none;
-    }
-    body::before {
-      top: -120px;
-      right: -160px;
-      background: radial-gradient(circle, #22c55e55, transparent 70%);
-    }
-    body::after {
-      bottom: -160px;
-      left: -140px;
-      background: radial-gradient(circle, #38bdf855, transparent 70%);
-    }
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  border-radius: 999px;
+  filter: blur(60px);
+  opacity: 0.6;
+  z-index: -1;
+  pointer-events: none;
+}
+body::before {
+  top: -120px;
+  right: -160px;
+  background: radial-gradient(circle, #22c55e55, transparent 70%);
+}
+body::after {
+  bottom: -160px;
+  left: -140px;
+  background: radial-gradient(circle, #38bdf855, transparent 70%);
+}
 
-    .app-shell {
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      position: relative;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      border-radius: 32px;
-      background: radial-gradient(circle at top, #022c22 0, #020617 40%, #020617 100%);
-      overflow: hidden;
-      box-shadow:
-        0 32px 80px rgba(0, 0, 0, 0.75),
-        0 0 0 1px rgba(148, 163, 184, 0.25);
-    }
+/* 모바일 카드 프레임 */
+.app-shell {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 32px;
+  background: radial-gradient(circle at top, #022c22 0, #020617 40%, #020617 100%);
+  overflow: hidden;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(148, 163, 184, 0.25);
+}
 
-    .app-shell::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, #22c55e20, transparent 60%, #38bdf820);
-      mix-blend-mode: screen;
-      pointer-events: none;
-    }
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #22c55e20, transparent 60%, #38bdf820);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
 
-    .top-header {
-      position: relative;
-      height: 64px;
-      background: linear-gradient(120deg, #22c55e, #4ade80, #22c55e);
-      background-size: 200% 200%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 16px;
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.65);
-      animation: headerGlow 8s ease-in-out infinite;
-      z-index: 2;
-    }
-    .logo-area { display: flex; align-items: center; gap: 10px; }
-    .logo-img {
+/* 헤더 */
+.top-header {
+  position: relative;
+  height: 64px;
+  background: linear-gradient(120deg, #22c55e, #4ade80, #22c55e);
+  background-size: 200% 200%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.65);
+  animation: headerGlow 8s ease-in-out infinite;
+  z-index: 2;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
   width: 35px;
   height: 35px;
   border-radius: 50%;
   object-fit: cover;
 }
-    .logo-title { font-size: 20px; line-height: 1; color: #022c22; font-weight: 600; }
-    .logo-title.bold {
-      margin-left: 2px;
-      font-weight: 800;
-      background: linear-gradient(90deg, #022c22, #052e16);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
- .profile-btn {
+
+.logo-title {
+  font-size: 20px;
+  line-height: 1;
+  color: #022c22;
+  font-weight: 600;
+}
+.logo-title.bold {
+  margin-left: 2px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #022c22, #052e16);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* 프로필 버튼 */
+.profile-btn {
   background: none;
   border: none;
   padding: 0;
@@ -109,7 +129,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #eaffea; /* OW green 계열 배경 */
+  background-color: #eaffea;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,196 +138,61 @@
 }
 
 .profile-icon img {
-  width: 85%;      /* 이미지가 원 안에 작게 들어가게 */
+  width: 85%;
   height: 85%;
   border-radius: 50%;
   object-fit: cover;
 }
 
+/* 메인 컨텐츠 */
+.content {
+  position: relative;
+  flex: 1;
+  padding: 16px 16px 80px;
+  overflow-y: auto;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.95),
+    rgba(15, 23, 42, 0.98)
+  );
+  backdrop-filter: blur(18px);
+  z-index: 1;
+}
 
-    .content {
-      position: relative;
-      flex: 1;
-      padding: 16px 16px 80px;
-      overflow-y: auto;
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
-      backdrop-filter: blur(18px);
-      z-index: 1;
-    }
+/* ================= 공통 프로필 섹션 ================= */
 
-    /* 페이지 공통 */
-    .page {
-      display: none;
-      min-height: calc(100vh - 64px - 64px);
-    }
-    .page.active {
-      display: block;
-    }
-
-    .label {
-      font-size: 0.78rem;
-      color: var(--ow-text-sub);
-      margin: 0 0 4px;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-    }
-    .sub-label {
-      font-size: 0.8rem;
-      color: var(--ow-text-sub);
-      margin: 4px 0 0;
-    }
-    .point { font-weight: 700; color: #f97316; }
-
-    /* 공통 섹션 */
 .profile-section {
-  margin-bottom: 20px;
+  margin: 0 12px 18px;
 }
 
-.profile-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.profile-section-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 12px 0 6px;
-}
-
-/* 구분선 */
-.profile-divider {
-  height: 1px;
-  background-color: #d9d9d9;
-  margin: 12px 0 18px;
-}
-
-/* 프로필 정보 */
-.profile-info p {
-  font-size: 15px;
-  margin: 10px 15px;
-}
-
-.profile-label {
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-/* 텍스트 + 아이콘 버튼 (프로필 수정, 즐겨찾기 등) */
-.text-icon-btn {
-  border: none;
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #333;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 999px;
-}
-
-.text-icon-btn:hover {
-  background-color: #f0f0f0;
-}
-
-/* 이미지 아이콘 공통 스타일 */
-.icon-img {
-  width: 16px;
-  height: 16px;
-  display: block;
-  object-fit: contain;
-}
-
-/* 즐겨찾기 영역 (프로필 페이지용) */
-.favorite-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.profile-content .favorite-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 15px;
-}
-
-.profile-content .favorite-item {
-  margin-bottom: 10px;
-}
-
-.profile-content .favorite-name {
-  margin: 0 0 2px;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.profile-content .favorite-meta {
-  margin: 0;
-  font-size: 12px;
-  color: #555;
-}
-
-/* 설정 영역 (프로필 페이지) */
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0 15px 10px;
-}
-
-.setting-label {
-  font-size: 14px;
-}
-
-/* 토글 버튼 그룹 */
-.toggle-group {
-  display: inline-flex;
-  border-radius: 999px;
-  border: 1px solid white;
-  padding: 2px;
-}
-
-.toggle-btn {
-  border: none;
-  background: transparent;
-  padding: 4px 0;
-  width: 55px;
-  font-size: 12px;
-  color: white;
-  cursor: pointer;
-  border-radius: 999px;
-  text-align: center;
-  transition: background-color .15s, color .15s;
-}
-
-/* 선택된 쪽 (ON, 라이트, CSV 등) */
-.toggle-btn-active {
-  background-color: #80fc75;
-  color: black;
-}
-
-/*========================================*/
-
-/* 프로필 섹션 전체 여백 (폰 안에서 좌우 패딩 맞추기) */
-.profile-section {
-  margin: 12px 4px 16px;
-}
-
-/* 메인 카드 스타일 (홈 화면 섹션 느낌 맞춤) */
 .profile-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* 실제 카드 */
+.profile-card-inner {
+  position: relative;
   background: var(--ow-card-bg);
   border-radius: var(--ow-radius-lg);
   border: 1px solid var(--ow-card-border);
-  padding: 14px 14px 12px;
+  padding: 16px 16px 14px;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85);
-  position: relative;
+  overflow: hidden;
 }
 
-/* 섹션 헤더 정렬 */
+.profile-card-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, #22c55e22, transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
 .profile-section-header {
   display: flex;
   align-items: center;
@@ -316,19 +201,17 @@
   margin-bottom: 10px;
 }
 
-/* 섹션 제목 */
 .profile-section-title {
   font-size: 15px;
   font-weight: 600;
   margin: 4px 0;
 }
 
-/* 기존 divider는 안 쓸 거면 필요시 숨겨도 됨 */
 .profile-divider {
   display: none;
 }
 
-/* 프로필 기본 텍스트들 카드 안에서 여백 맞추기 */
+/* 프로필 텍스트 */
 .profile-info p {
   font-size: 14px;
   margin: 6px 2px;
@@ -365,26 +248,40 @@
   object-fit: contain;
 }
 
-/* 즐겨찾기/정기지출 리스트 */
+/* ================= 즐겨찾기 / 정기지출 리스트 공통 ================= */
+
 .favorite-actions {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
+/* 리스트 래퍼 */
 .favorite-list {
   list-style: none;
   padding: 0;
   margin: 4px 2px 0;
 }
 
+/* 각 항목: 왼쪽 텍스트 / 오른쪽 쓰레기통 버튼 */
 .favorite-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   padding: 6px 0;
   border-bottom: 1px dashed rgba(148, 163, 184, 0.4);
 }
 
 .favorite-item:last-child {
   border-bottom: none;
+}
+
+/* 왼쪽 텍스트 묶음 */
+.favorite-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .favorite-name {
@@ -399,7 +296,29 @@
   color: var(--ow-text-sub);
 }
 
-/* 설정 행 */
+/* 오른쪽 쓰레기통 버튼 */
+.favorite-delete-btn {
+  border: none;
+  background: transparent;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-delete-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.8;
+}
+
+.favorite-delete-btn:hover .favorite-delete-icon {
+  opacity: 1;
+}
+
+/* ================= 설정 영역 ================= */
+
 .setting-row {
   display: flex;
   align-items: center;
@@ -412,41 +331,33 @@
   font-size: 13px;
 }
 
-/* 섹션 여백 (폰 좌우 패딩 맞추기) */
-.profile-section {
-  margin: 0 12px 18px;
+/* 토글 버튼 그룹 */
+.toggle-group {
+  display: inline-flex;
+  border-radius: 999px;
+  border: 1px solid white;
+  padding: 2px;
 }
 
-/* 가장 바깥 래퍼는 여백/레이아웃만 담당 */
-.profile-card {
-  padding: 0;
-  background: transparent;
+.toggle-btn {
   border: none;
-  box-shadow: none;
+  background: transparent;
+  padding: 4px 0;
+  width: 55px;
+  font-size: 12px;
+  color: white;
+  cursor: pointer;
+  border-radius: 999px;
+  text-align: center;
+  transition: background-color 0.15s, color 0.15s;
 }
 
-/* 진짜 카드 배경 (메인 섹션 느낌) */
-.profile-card-inner {
-  position: relative;
-  background: var(--ow-card-bg);
-  border-radius: var(--ow-radius-lg);
-  border: 1px solid var(--ow-card-border);
-  padding: 16px 16px 14px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.85);
-  overflow: hidden;
+.toggle-btn-active {
+  background-color: #80fc75;
+  color: black;
 }
 
-/* 메인처럼 살짝 그라데이션 광택 */
-.profile-card-inner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top left, #22c55e22, transparent 55%);
-  mix-blend-mode: screen;
-  opacity: 0.9;
-  pointer-events: none;
-}
-
+/* ================= 뒤로가기 버튼 ================= */
 
 .back-home-btn {
   width: 100%;
@@ -475,21 +386,7 @@
   box-shadow: 0 6px 16px rgba(22, 163, 74, 0.45);
 }
 
-.record-item-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.item-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* ============================
-   프로필 수정 폼
-   ============================ */
+/* ================= 프로필 수정 폼 ================= */
 
 .profile-edit-form {
   margin-top: 10px;
@@ -556,4 +453,3 @@
   color: var(--ow-text-sub);
   border: 1px solid rgba(148, 163, 184, 0.6);
 }
-
