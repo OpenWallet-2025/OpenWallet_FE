@@ -1,3 +1,4 @@
+
 /* =========================
    OpenWallet - app.js (통합본, 2025-11-29)
    ========================= */
@@ -839,6 +840,12 @@ const initAddPanel = () =>{
             <option value="취미·문화생활">취미·문화생활</option><option value="기타">기타</option><option value="정기구독">정기구독</option>
           </select>
         </div>
+        <!-- 정기 구독 힌트 -->
+        <p id="subscribeHint"
+           class="add-hint"
+           style="display:none; margin-top:6px; font-size:12px; color:#9ca3af;">
+        </p>
+      </div>
       </div>
       <div class="add-field">
         <label class="add-label" for="add-emotion">감정 태그</label>
@@ -884,6 +891,52 @@ const initAddPanel = () =>{
   const scoreInput = document.getElementById("add-score");
   const receiptBtn = document.getElementById("btn-receipt");
   const receiptInput= document.getElementById("add-receipt-input");
+
+  const catSelect      = document.getElementById("add-category");
+  const subscribeHint  = document.getElementById("subscribeHint");
+
+  function updateSubscribeHint() {
+    if (!subscribeHint) return;
+
+    // 정기구독이 아닐 땐 숨기기
+    if (!catSelect || catSelect.value !== "정기구독") {
+      subscribeHint.style.display = "none";
+      subscribeHint.textContent = "";
+      return;
+    }
+
+    // 날짜 값 읽기
+    const y = yearEl?.value || "";
+    const m = monthEl?.value || "";
+    const d = dayEl?.value || "";
+
+    if (!y || !m || !d) {
+      // 날짜가 아직 완성 안 됐으면 기본 문구
+      subscribeHint.textContent =
+        "🔔 선택한 날짜를 기준으로 매달 소비 달력에 구독 결제가 표시돼요.";
+    } else {
+      const dateStr = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      subscribeHint.textContent =
+        `🔔 ${dateStr}을(를) 기준으로 매달 소비 달력에 구독 결제가 표시돼요.`;
+    }
+
+    subscribeHint.style.display = "block";
+  }
+
+  // 카테고리 바뀔 때
+  if (catSelect) {
+    catSelect.addEventListener("change", updateSubscribeHint);
+  }
+
+  // 날짜 바뀔 때도 다시 계산
+  [yearEl, monthEl, dayEl, nativeDate].forEach((el) => {
+    if (!el) return;
+    el.addEventListener("input", updateSubscribeHint);
+    el.addEventListener("change", updateSubscribeHint);
+  });
+
+  // 초기 한 번 호출
+  updateSubscribeHint();
 
   const now2 = new Date(); const yyyy2=String(now2.getFullYear()); const mm2=String(now2.getMonth()+1).padStart(2,"0"); const dd2=String(now2.getDate()).padStart(2,"0");
   if (yearEl && monthEl && dayEl){ yearEl.value=yyyy2; monthEl.value=mm2; dayEl.value=dd2; }
