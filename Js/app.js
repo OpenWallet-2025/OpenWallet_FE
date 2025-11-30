@@ -1,12 +1,16 @@
-
 /* =========================
    OpenWallet - app.js (통합본, 2025-11-29)
    ========================= */
 
 /* ---- 전역 상수 ---- */
+// 배포/공용 BE 주소 (지출, 트렌드, 리포트 등)
 const API_BASE_URL = "http://openwallet2025.com/api";
-const OCR_RECEIPT_URL = `${API_BASE_URL}/ocr-receipt`;
-const TRENDS_SUMMARY_URL = `${API_BASE_URL}/trends/summary`;
+
+// OCR만 로컬 FastAPI로 분리 (2025-11-30)
+const OCR_API_BASE_URL = "http://127.0.0.1:8000";
+
+const OCR_RECEIPT_URL    = `${OCR_API_BASE_URL}/ocr-receipt`;      //  로컬 fastapi
+const TRENDS_SUMMARY_URL = `${API_BASE_URL}/trends/summary`;       // 서버
 const CATEGORY_ENUM_TO_KR = {
       "FOOD": "식비",
       "LIVING": "생활",
@@ -31,7 +35,7 @@ const CATEGORY_KR_TO_ENUM = {
       "정기지출": "SUBSCRIBE"
     };
 
-// 🔗 Swagger에 정의된 엔드포인트 (실제 path는 Swagger 보고 수정!)
+// Swagger에 정의된 엔드포인트 (실제 path는 Swagger 보고 수정!)
 const TX_LIST_URL       = `${API_BASE_URL}/expenses`;   // GET /expenses
 const TX_CREATE_URL     = `${API_BASE_URL}/expenses`;   // POST /expenses
 
