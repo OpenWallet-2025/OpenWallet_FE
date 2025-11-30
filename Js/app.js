@@ -1,3 +1,11 @@
+try {
+  const loggedIn = localStorage.getItem("ow_logged_in") === "true";
+  if (!loggedIn) {
+    window.location.href = "login.html";
+  }
+} catch (e) {
+  console.warn("localStorage 사용 불가", e);
+}
 /* =========================
    OpenWallet - app.js (통합본, 2025-11-29)
    ========================= */
