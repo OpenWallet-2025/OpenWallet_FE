@@ -1,15 +1,16 @@
 FROM nginx:latest
 
 # 정적 폴더 생성
-RUN mkdir -p /usr/share/nginx/html/css \
-    && mkdir -p /usr/share/nginx/html/js
+RUN mkdir -p /usr/share/nginx/html/CSS \
+    && mkdir -p /usr/share/nginx/html/js \
+    && mkdir -p /usr/share/nginx/html/assets \
+    && mkdir -p /usr/share/nginx/html/img
 
-# 로그인 화면 파일
-COPY login.html /usr/share/nginx/html/
-COPY login.css /usr/share/nginx/html/css/
-COPY login.js /usr/share/nginx/html/js/
+COPY *.html /usr/share/nginx/html/
+COPY assets/ /usr/share/nginx/html/assets/
+COPY img/ /usr/share/nginx/html/img/
+COPY CSS/ /usr/share/nginx/html/CSS/
+COPY js/ /usr/share/nginx/html/js/
 
-# 홈 화면 파일
-COPY HomeScreen/HomeScreen.css /usr/share/nginx/html/css/
-COPY HomeScreen/HomeScreen.js /usr/share/nginx/html/js/
-COPY HomeScreen/HomeScreen.html /usr/share/nginx/html/
+
+
