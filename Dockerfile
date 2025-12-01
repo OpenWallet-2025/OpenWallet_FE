@@ -10,7 +10,7 @@ COPY *.html /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
 COPY img/ /usr/share/nginx/html/img/
 COPY CSS/ /usr/share/nginx/html/CSS/
-COPY Js/ /usr/share/nginx/html/js/
+COPY Js/ /usr/share/nginx/html/Js/
 
 
 
