@@ -26,6 +26,7 @@ const CATEGORY_KR_TO_ENUM = {
   "교육·자기계발": "EDUCATION",
   "의류": "CLOTHING",
   "기타": "ETC",
+  "정기지출": "SUBSCRIBE"
 };
 
 const CATEGORY_ENUM_TO_KR = {
@@ -37,7 +38,7 @@ const CATEGORY_ENUM_TO_KR = {
   EDUCATION: "교육·자기계발",
   CLOTHING: "의류",
   ETC: "기타",
-  SUBSCRIBE: "정기지출", // ← 나중에 정기지출 API 쓸 때 대비용. 싫으면 이 줄도 삭제 가능.
+  SUBSCRIBE: "정기지출"
 };
 
 /** 숫자를 1000단위 콤마로 포맷 (예: 850000 -> "850,000") */
@@ -233,7 +234,7 @@ async function loadFavoritesToView() {
         </div>
 
         <button class="favorite-delete-btn" data-id="${item.id}">
-          <img src="img/delete.png" class="favorite-delete-icon">
+          <img src="assets/delete.png" class="favorite-delete-icon">
         </button>
       `;
 

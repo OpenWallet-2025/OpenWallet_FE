@@ -6,10 +6,10 @@ RUN mkdir -p /usr/share/nginx/html/css \
 
 # 로그인 화면 파일
 COPY login.html /usr/share/nginx/html/
-COPY login.css /usr/share/nginx/html/css/
-COPY login.js /usr/share/nginx/html/js/
+COPY CSS/login.css /usr/share/nginx/html/css/
+COPY Js/login.js /usr/share/nginx/html/js/
 
 # 홈 화면 파일
-COPY HomeScreen/HomeScreen.css /usr/share/nginx/html/css/
-COPY HomeScreen/HomeScreen.js /usr/share/nginx/html/js/
-COPY HomeScreen/HomeScreen.html /usr/share/nginx/html/
+COPY CSS/styles.css /usr/share/nginx/html/css/
+COPY Js/app.js /usr/share/nginx/html/js/
+COPY index.html /usr/share/nginx/html/
