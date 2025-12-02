@@ -28,7 +28,7 @@ const CATEGORY_ENUM_TO_KR = {
       "EDUCATION": "교육·자기계발",
       "CLOTHING": "의류",
       "ETC": "기타",
-      "SUBSCRIBE": "정기지출"
+      "SUBSCRIBE": "정기구독"
     };
 
 const CATEGORY_KR_TO_ENUM = {
@@ -40,7 +40,7 @@ const CATEGORY_KR_TO_ENUM = {
       "교통비": "TRANSPORT",
       "취미·문화생활": "CULTURE",
       "기타": "ETC",
-      "정기지출": "SUBSCRIBE"
+      "정기구독": "SUBSCRIBE"
     };
 
 // Swagger에 정의된 엔드포인트 (실제 path는 Swagger 보고 수정!)
@@ -71,7 +71,7 @@ let BUDGET = 850000;
 const PROFILE_STORAGE_KEY = "ow_profile";
 
 // 차트 상태 (기간 / 타입)
-let chartScope = "month";      // "month" | "week"  (지금은 month만 사용)
+let chartScope = "month";      // "month" | "week"
 let chartType  = "doughnut";   // "doughnut" | "bar" | "line"
 
 /** localStorage에서 프로필 예산 가져오기 */
@@ -159,6 +159,7 @@ function calcSatisfactionStats() {
   return counts;
 }
 
+
 const EMOTION_RATIO = { HAPPY:40, EXCITED:10, SAD:10, ANGRY:5, STRESSED:25, NEUTRAL:10 };
 const EMOTION_LABELS = {
   HAPPY:"행복 소비", EXCITED:"들뜸 소비", SAD:"우울 소비",
@@ -184,7 +185,7 @@ const CATEGORY_EMOJI = {
   "교육·자기계발": "📘",  // EDUCATION
   "의류": "👕",          // CLOTHING
   "기타": "🛍️",          // ETC
-  "정기지출": "🧾"        // SUBSCRIBE
+  "정기구독": "🧾"        // SUBSCRIBE
 };
 TX.forEach((t, i) => { t.emotion = EMOTION_KEYS[i % EMOTION_KEYS.length]; });
 
@@ -208,15 +209,15 @@ let recordContent = null;
 /* =============== Swagger API 래퍼 ================== */
 const API = {
   //=========================
-  /** 이번 달 지출 목록 불러오기 - 최근 31일 지출 */
+  /** 이번 달 지출 목록 불러오기 */
   async getMonthlyTx(year, month) {
     const res = await fetch(TX_LIST_URL);
     if (!res.ok) throw new Error(`getMonthlyTx HTTP ${res.status}`);
     const all = await res.json();
     return Array.isArray(all) ? all : [];
-  },
-
-//=======================
+  }
+  //=======================
+,
 
   /** 이번 달 요약(총 지출, 예산 등) 불러오기 */
   async getMonthSummary(year, month) {
@@ -332,7 +333,10 @@ async function loadMonthlyData(year, month) {
         };
       });
 
+      // 전체 리스트는 ALL_TX에 저장
       ALL_TX = mapped;
+
+      // 최근 31일만 TX에 반영
       const end = new Date();
       end.setHours(23, 59, 59, 999);
       const start = new Date(end);
@@ -348,6 +352,7 @@ async function loadMonthlyData(year, month) {
         return d >= start && d <= end;
       });
 
+      // 최근 31일 안에 데이터가 하나도 없으면 전체 사용
       if (!TX.length) {
         TX = mapped;
       }
@@ -357,6 +362,7 @@ async function loadMonthlyData(year, month) {
       ALL_TX = TX.slice();
     }
 
+    // 예산 정보가 내려오면 BUDGET 업데이트
     if (summary && typeof summary.budget === "number") {
       BUDGET = summary.budget;
     }
@@ -370,11 +376,12 @@ async function loadMonthlyData(year, month) {
     // 항상 UI 다시 그리기
     renderHomeCategoryChart();
     renderEmotionChart();
-    renderEmotionChart2()
+    renderEmotionChart2();
     renderEmotionCards();
     renderCalendar();
   }
 }
+
 
 /* ==========*/
 
@@ -399,12 +406,15 @@ const getMonthInfo = (offset) => {
   const first = new Date(year, month, 1);
   return { year, month, firstWeekday:first.getDay(), lastDate:new Date(year,month+1,0).getDate(), label:`${year}년 ${month+1}월` };
 };
+
 const renderCalendar = () => {
   const grid = document.getElementById("calendarGrid");
   const labelEl = document.getElementById("calMonthLabel");
   if (!grid || !labelEl) return;
+
   const info = getMonthInfo(calendarOffset);
   labelEl.textContent = info.label;
+
   const dayInfo = {};
   const sourceTx = (ALL_TX && ALL_TX.length) ? ALL_TX : TX;
 
@@ -452,6 +462,7 @@ const renderCalendar = () => {
   }
   grid.innerHTML = cells.join("");
 };
+
 const initCalendar = () => {
   const prevBtn = document.getElementById("calPrev");
   const nextBtn = document.getElementById("calNext");
@@ -465,6 +476,8 @@ let homeChartRef = null;
 const renderHomeCategoryChart = () => {
   const canvas = document.getElementById("homeCategoryChart");
   if (!canvas || typeof Chart === "undefined") return;
+
+  // 기간 필터 적용
   let dataTx = TX;
   if (chartScope === "week") {
     const end = new Date();
@@ -524,6 +537,7 @@ const renderHomeCategoryChart = () => {
     }
   });
 
+  // 월 전체 합계는 항상 전체 TX 기준
   const { total: monthTotal } = aggregateByCategory();
 
   const amountEl = document.querySelector(".amount");
@@ -557,7 +571,7 @@ const renderHomeCategoryChart = () => {
   const topAmountEl= document.getElementById("cat-top-amount");
   const pillsEl    = document.getElementById("categoryPills");
 
- const topBox =
+  const topBox =
     document.getElementById("top-category-box") ||
     document.querySelector(".top-category") ||
     (topNameEl && topNameEl.parentElement) ||
@@ -605,6 +619,7 @@ const renderHomeCategoryChart = () => {
       if (topBox) topBox.style.display = "none";
     }
   }
+
   if (pillsEl){
     const pills = labels.map((label,i)=>{
       const value = values[i];
@@ -644,8 +659,8 @@ function initChartControls() {
   });
 }
 
-
 /* ---- 감정 차트/팝업 ---- */
+// 감정 차트
 let emotionChartRef = null;
 const renderEmotionChart = () => {
   const canvas = document.getElementById("emotionChart");
@@ -682,7 +697,6 @@ const renderEmotionChart = () => {
     }
   });
 };
-
 // 만족도 차트 (emotionChart2)
 let emotionChartRef2 = null;
 const renderEmotionChart2 = () => {
@@ -735,7 +749,6 @@ const renderEmotionChart2 = () => {
 };
 
 
-
 const updateEmotionDetail = (emotionKey, labelText, ratioText) => {
   const modal = document.getElementById("emotionModal"); if(!modal) return;
   const titleEl = document.getElementById("emotionModalTitle");
@@ -776,6 +789,7 @@ const updateEmotionDetail = (emotionKey, labelText, ratioText) => {
   }
   modal.classList.add("show");
 };
+
 
 /* ================== 지출 기록 패널 ================== */
 
@@ -1127,7 +1141,7 @@ const initAddPanel = () =>{
           <select id="add-category" class="add-select">
             <option value="식비">식비</option><option value="생활">생활</option><option value="교통비">교통비</option>
             <option value="의료·건강">의료·건강</option><option value="교육·자기계발">교육·자기계발</option><option value="의류">의류</option>
-            <option value="취미·문화생활">취미·문화생활</option><option value="기타">기타</option><option value="정기지출">정기지출</option>
+            <option value="취미·문화생활">취미·문화생활</option><option value="기타">기타</option><option value="정기구독">정기구독</option>
           </select>
         </div>
         <!-- 정기 구독 힌트 -->

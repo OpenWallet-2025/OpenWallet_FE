@@ -585,7 +585,6 @@
 
     .emotion-chart-box {
       margin-top: 12px;
-      margin-bottom: 20px;
       padding: 10px 10px 14px;
       border-radius: 16px;
       background: radial-gradient(circle at top, #020617, #020617ee);
@@ -1811,6 +1810,7 @@
   margin-top: 4px;
   line-height: 1.4;
 }
+
 
 
 
