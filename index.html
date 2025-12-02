@@ -61,19 +61,15 @@
             <section class="chart-card">
                 <div class="chart-header-row">
                   <p class="label">카테고리별 소비 비율</p>
-
-                  <!-- 기간 토글: 월 / 주 -->
                   <div class="chart-scope-group">
                     <button class="chart-chip active" type="button" data-scope="month">월간</button>
                     <button class="chart-chip" type="button" data-scope="week">주간</button>
                   </div>
                 </div>
 
-                <!-- 차트 타입 토글: 원형 / 막대 / 꺾은선 -->
                 <div class="chart-type-group">
                   <button class="chart-type-btn active" type="button" data-type="doughnut">원형</button>
                   <button class="chart-type-btn" type="button" data-type="bar">막대</button>
-                  <button class="chart-type-btn" type="button" data-type="line">꺾은선</button>
                 </div>
 
               <div class="home-chart">
@@ -143,10 +139,18 @@
                   </div>
                 </div>
               </div>
-
+              <!-- 이게 진짜 감정 차트고, -->
               <div class="emotion-chart-box">
                 <canvas id="emotionChart"></canvas>
               </div>
+              <!-- 얘는 만족도 차트임 -->
+              <section class="satisfaction-chart-section">
+                <p class="label">만족도 차트</p>
+
+                <div class="emotion-chart-box">
+                  <canvas id="emotionChart2"></canvas>
+                </div>
+              </section>
             </section>
           </div>
 

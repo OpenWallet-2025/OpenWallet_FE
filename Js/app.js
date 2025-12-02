@@ -145,6 +145,20 @@ function renderEmotionCards() {
   });
 }
 
+/* 만족도 계산 부분 */
+function calcSatisfactionStats() {
+  const counts = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+
+  TX.forEach(t => {
+    const s = t.satisfaction;
+    if (typeof s === "number" && s >= 1 && s <= 5) {
+      counts[s] += 1;
+    }
+  });
+
+  return counts;
+}
+
 const EMOTION_RATIO = { HAPPY:40, EXCITED:10, SAD:10, ANGRY:5, STRESSED:25, NEUTRAL:10 };
 const EMOTION_LABELS = {
   HAPPY:"행복 소비", EXCITED:"들뜸 소비", SAD:"우울 소비",
@@ -356,6 +370,7 @@ async function loadMonthlyData(year, month) {
     // 항상 UI 다시 그리기
     renderHomeCategoryChart();
     renderEmotionChart();
+    renderEmotionChart2()
     renderEmotionCards();
     renderCalendar();
   }
@@ -667,6 +682,60 @@ const renderEmotionChart = () => {
     }
   });
 };
+
+// 만족도 차트 (emotionChart2)
+let emotionChartRef2 = null;
+const renderEmotionChart2 = () => {
+  const canvas = document.getElementById("emotionChart2");
+  if (!canvas || typeof Chart === "undefined") return;
+  const stats = calcSatisfactionStats(); // {1:?,2:?,3:?,4:?,5:?}
+  const labels = ["만족도 1", "만족도 2", "만족도 3", "만족도 4", "만족도 5"];
+  const values = [stats[1], stats[2], stats[3], stats[4], stats[5]];
+  const ctx = canvas.getContext("2d");
+  if (emotionChartRef2) emotionChartRef2.destroy();
+  emotionChartRef2 = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: generateColors(values.length),
+        borderWidth: 0,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) => `${c.raw}회`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            font: { size: 12 }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            font: { size: 12 }
+          }
+        }
+      }
+    }
+  });
+};
+
+
+
 const updateEmotionDetail = (emotionKey, labelText, ratioText) => {
   const modal = document.getElementById("emotionModal"); if(!modal) return;
   const titleEl = document.getElementById("emotionModalTitle");
@@ -915,6 +984,7 @@ function renderRecordPanel() {
         renderRecordPanel();
         renderHomeCategoryChart();
         renderEmotionChart();
+        renderEmotionChart2();
         renderEmotionCards();
         renderCalendar();
 
