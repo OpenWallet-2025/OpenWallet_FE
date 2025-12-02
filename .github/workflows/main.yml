@@ -68,7 +68,9 @@ jobs:
   update-manifest-repo:
     runs-on: ubuntu-latest
     needs: docker-build-and-push
-      
+    
+    # push일 때만으로 변경
+    if: github.event_name == 'push'
     steps:
       - name: Determine branch
         id: branch

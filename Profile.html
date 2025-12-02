@@ -7,6 +7,7 @@
 
   <!-- 프로필 전용 CSS -->
   <link rel="stylesheet" href="CSS/profile.css" />
+  <link rel="stylesheet" href="CSS/styles.css" />
 </head>
 <body>
   <div id="app-root">
@@ -35,7 +36,7 @@
               <h2 class="profile-section-title">내 프로필</h2>
               <!-- ✅ 프로필 수정 버튼에 id 추가 -->
               <button type="button" class="text-icon-btn" id="profileEditBtn">
-                <img src="img/profileEdit.png" alt="" class="icon-img" />
+                <img src="assets/profileEdit.png" alt="" class="icon-img" />
                 <span>프로필 수정</span>
               </button>
             </div>
@@ -108,12 +109,8 @@
               <h2 class="profile-section-title">정기지출</h2>
               <div class="favorite-actions">
                 <button type="button" class="text-icon-btn">
-                  <img src="img/star.png" alt="" class="icon-img" />
+                  <img src="assets/star.png" alt="" class="icon-img" />
                   <span>정기지출 추가</span>
-                </button>
-                <button type="button" class="text-icon-btn">
-                  <img src="img/delete.png" alt="" class="icon-img" />
-                  <span>정기지출 삭제</span>
                 </button>
               </div>
             </div>
@@ -122,10 +119,16 @@
               <li class="favorite-item">
                 <p class="favorite-name">상품명: 커피</p>
                 <p class="favorite-meta">날짜: 매월 28일, 금액: 4,900원, 카테고리: 식비</p>
+                <button class="favorite-delete-btn" data-id="UUID...">
+                  <img src="assets/delete.png" class="favorite-delete-icon">
+                </button>
               </li>
               <li class="favorite-item">
                 <p class="favorite-name">상품명: 챗지피티</p>
                 <p class="favorite-meta">날짜: 매월 20일, 금액: 32,751원, 카테고리: 기타</p>
+                <button class="favorite-delete-btn" data-id="UUID...">
+                  <img src="assets/delete.png" class="favorite-delete-icon">
+                </button>
               </li>
             </ul>
           </div>
@@ -140,12 +143,8 @@
               <h2 class="profile-section-title">즐겨찾기</h2>
               <div class="favorite-actions">
                 <button type="button" class="text-icon-btn">
-                  <img src="img/star.png" alt="" class="icon-img" />
+                  <img src="assets/star.png" alt="" class="icon-img" />
                   <span>즐겨찾기 추가</span>
-                </button>
-                <button type="button" class="text-icon-btn">
-                  <img src="img/delete.png" alt="" class="icon-img" />
-                  <span>즐겨찾기 삭제</span>
                 </button>
               </div>
             
@@ -154,10 +153,16 @@
               <li class="favorite-item">
                 <p class="favorite-name">상품명: 커피</p>
                 <p class="favorite-meta">금액: 4,900원, 카테고리: 식비</p>
+                <button class="favorite-delete-btn" data-id="UUID...">
+                  <img src="assets/delete.png" class="favorite-delete-icon">
+                </button>
               </li>
               <li class="favorite-item">
                 <p class="favorite-name">상품명: 챗지피티</p>
                 <p class="favorite-meta">금액: 32,751원, 카테고리: 기타</p>
+                <button class="favorite-delete-btn" data-id="UUID...">
+                  <img src= "assets/delete.png" class="favorite-delete-icon">
+                </button>
               </li>
             </ul>
           </div>
@@ -215,7 +220,17 @@
       </main>
     </div>
   </div>
-  
+
+    <!-- ===========================
+      지출추가 패널 (메인과 동일)
+      =========================== -->
+  <div class="add-panel-backdrop" id="addPanel">
+    <div class="add-panel">
+      <div class="add-panel-handle"></div>
+      <div id="addPanelContent"></div>
+    </div>
+  </div>
+
 
   <script src="Js/Profile.js"></script>
 </body>

@@ -28,7 +28,7 @@ const CATEGORY_ENUM_TO_KR = {
       "EDUCATION": "교육·자기계발",
       "CLOTHING": "의류",
       "ETC": "기타",
-      "SUBSCRIBE": "정기지출"
+      "SUBSCRIBE": "정기구독"
     };
 
 const CATEGORY_KR_TO_ENUM = {
@@ -40,7 +40,7 @@ const CATEGORY_KR_TO_ENUM = {
       "교통비": "TRANSPORT",
       "취미·문화생활": "CULTURE",
       "기타": "ETC",
-      "정기지출": "SUBSCRIBE"
+      "정기구독": "SUBSCRIBE"
     };
 
 // Swagger에 정의된 엔드포인트 (실제 path는 Swagger 보고 수정!)
@@ -64,9 +64,15 @@ let TX = [
   { date: "2025-11-08", cat: "취미·문화생활", amount: 67000 },
   { date: "2025-11-09", cat: "식비", amount: 28000 }
 ];
+
+let ALL_TX = [];
 let BUDGET = 850000;
 // 🔹 프로필 localStorage 연동 (예산 공유용)
 const PROFILE_STORAGE_KEY = "ow_profile";
+
+// 차트 상태 (기간 / 타입)
+let chartScope = "month";      // "month" | "week"
+let chartType  = "doughnut";   // "doughnut" | "bar" | "line"
 
 /** localStorage에서 프로필 예산 가져오기 */
 function loadProfileBudget() {
@@ -89,6 +95,70 @@ function loadProfileBudget() {
     return null;
   }
 }
+
+/** TX 기반 감정 비율 계산 (없으면 데모 값(EMOTION_RATIO) 사용) */
+function calcEmotionStats() {
+  const counts = {
+    HAPPY: 0,
+    EXCITED: 0,
+    SAD: 0,
+    ANGRY: 0,
+    STRESSED: 0,
+    NEUTRAL: 0,
+  };
+  let total = 0;
+
+  TX.forEach((t) => {
+    if (!t.emotion) return;
+    if (!counts.hasOwnProperty(t.emotion)) return;
+    const amt = typeof t.amount === "number" ? t.amount : 0;
+    counts[t.emotion] += amt;
+    total += amt;
+  });
+
+  const ratio = {};
+
+  if (total > 0) {
+    // 실제 데이터가 있으면 그걸로 퍼센트 계산
+    Object.keys(counts).forEach((key) => {
+      ratio[key] = Number(((counts[key] / total) * 100).toFixed(1));
+    });
+  } else {
+    // 감정 데이터가 하나도 없으면, 데모 비율(EMOTION_RATIO) 사용
+    Object.keys(counts).forEach((key) => {
+      ratio[key] =
+        typeof EMOTION_RATIO[key] === "number" ? EMOTION_RATIO[key] : 0;
+    });
+  }
+
+  return ratio;
+}
+
+/* 감정 카드 업데이트 */
+function renderEmotionCards() {
+  const ratio = calcEmotionStats();
+
+  document.querySelectorAll(".emotion-card").forEach(card => {
+    const key = card.dataset.emotion;
+    const strong = card.querySelector("strong");
+    if (strong) strong.textContent = ratio[key] + "%";
+  });
+}
+
+/* 만족도 계산 부분 */
+function calcSatisfactionStats() {
+  const counts = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+
+  TX.forEach(t => {
+    const s = t.satisfaction;
+    if (typeof s === "number" && s >= 1 && s <= 5) {
+      counts[s] += 1;
+    }
+  });
+
+  return counts;
+}
+
 
 const EMOTION_RATIO = { HAPPY:40, EXCITED:10, SAD:10, ANGRY:5, STRESSED:25, NEUTRAL:10 };
 const EMOTION_LABELS = {
@@ -141,24 +211,12 @@ const API = {
   //=========================
   /** 이번 달 지출 목록 불러오기 */
   async getMonthlyTx(year, month) {
-  // Swagger: GET /expenses (파라미터 없음)
-  const res = await fetch(TX_LIST_URL);
-  if (!res.ok) throw new Error(`getMonthlyTx HTTP ${res.status}`);
-  const all = await res.json();
-
-  // 🔹 여기서 year, month 기준으로 필터링
-  const monthStr = String(month).padStart(2, "0");
-  const filtered = Array.isArray(all)
-    ? all.filter((t) => {
-        // 응답 예시: { id, title, date, price, category, emotion, memo, satisfaction }
-        if (!t.date) return false;
-        const [y, m] = String(t.date).split("-");
-        return String(y) === String(year) && m === monthStr;
-      })
-    : [];
-
-  return filtered;
-}//=======================
+    const res = await fetch(TX_LIST_URL);
+    if (!res.ok) throw new Error(`getMonthlyTx HTTP ${res.status}`);
+    const all = await res.json();
+    return Array.isArray(all) ? all : [];
+  }
+  //=======================
 ,
 
   /** 이번 달 요약(총 지출, 예산 등) 불러오기 */
@@ -236,12 +294,19 @@ const escapeHtml = (s)=>String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;
 const escapeAttr = (s)=>String(s).replace(/"/g,"&quot;");
 const tryExtractHost = (u)=>{ try{ return new URL(u).host; }catch{ return null; } };
 
-const aggregateByCategory = () => {
+const aggregateByCategory = (txList) => {
+  const source = Array.isArray(txList) ? txList : TX;
   const sums = new Map();
-  TX.forEach(t => sums.set(t.cat, (sums.get(t.cat)||0) + t.amount));
+  source.forEach(t => {
+    if (!t || !t.cat || typeof t.amount !== "number") return;
+    sums.set(t.cat, (sums.get(t.cat) || 0) + t.amount);
+  });
+
   const labels = Array.from(sums.keys());
   const values = Array.from(sums.values());
-  return { labels, values, total: values.reduce((a,b)=>a+b,0) };
+  const total  = values.reduce((a, b) => a + b, 0);
+
+  return { labels, values, total };
 };
 
 /** ============== 서버에서 이번 달 지출 + 요약 불러와서 상태 갱신 ================*/
@@ -252,25 +317,49 @@ async function loadMonthlyData(year, month) {
       API.getMonthSummary(year, month).catch(() => null),
     ]);
 
-    // 🔹 Swagger 응답 형식에 맞게 필드 이름 매핑 + 카테고리 한국어 변환
     if (Array.isArray(txList) && txList.length) {
-      TX = txList.map((t) => {
-        // t.category: "FOOD", "TRANSPORT" 같은 ENUM이 온다고 가정
+      const mapped = txList.map((t) => {
         const catKr = CATEGORY_ENUM_TO_KR[t.category] || t.category || "기타";
 
         return {
-          id: t.id,                // 나중에 삭제/수정할 때 필요
-          date: t.date,            // "2025-11-29"
+          id: t.id,
+          date: t.date,
           title: t.title || " ",
-          cat: catKr,              // ✅ 이후 UI는 전부 한국어 카테고리 사용
-          amount: t.price,         // 금액
-          emotion: t.emotion || "", 
+          cat: catKr,
+          amount: t.price,
+          emotion: t.emotion || "",
           memo: t.memo || "",
           satisfaction: t.satisfaction ?? null,
         };
       });
-    } else {
+
+      // 전체 리스트는 ALL_TX에 저장
+      ALL_TX = mapped;
+
+      // 최근 31일만 TX에 반영
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+      const start = new Date(end);
+      start.setDate(start.getDate() - 30); // 최근 31일
+
+      TX = mapped.filter((t) => {
+        if (!t.date) return false;
+        let d = new Date(t.date);
+        if (isNaN(d.getTime())) {
+          d = new Date(`${t.date}T00:00:00`);
+        }
+        if (isNaN(d.getTime())) return false;
+        return d >= start && d <= end;
+      });
+
+      // 최근 31일 안에 데이터가 하나도 없으면 전체 사용
+      if (!TX.length) {
+        TX = mapped;
+      }
+    } 
+    else {
       console.log("⚠️ 서버에서 지출 내역이 비어 있어서 데모 TX 유지");
+      ALL_TX = TX.slice();
     }
 
     // 예산 정보가 내려오면 BUDGET 업데이트
@@ -280,13 +369,19 @@ async function loadMonthlyData(year, month) {
   } catch (err) {
     console.error("loadMonthlyData error:", err);
     showToast("서버에서 데이터를 불러오지 못해서 데모 데이터를 사용합니다.");
+    if (!ALL_TX.length) {
+      ALL_TX = TX.slice();
+    }
   } finally {
     // 항상 UI 다시 그리기
     renderHomeCategoryChart();
     renderEmotionChart();
+    renderEmotionChart2();
+    renderEmotionCards();
     renderCalendar();
   }
 }
+
 
 /* ==========*/
 
@@ -311,15 +406,19 @@ const getMonthInfo = (offset) => {
   const first = new Date(year, month, 1);
   return { year, month, firstWeekday:first.getDay(), lastDate:new Date(year,month+1,0).getDate(), label:`${year}년 ${month+1}월` };
 };
+
 const renderCalendar = () => {
   const grid = document.getElementById("calendarGrid");
   const labelEl = document.getElementById("calMonthLabel");
   if (!grid || !labelEl) return;
+
   const info = getMonthInfo(calendarOffset);
   labelEl.textContent = info.label;
 
   const dayInfo = {};
-  TX.forEach(t=>{
+  const sourceTx = (ALL_TX && ALL_TX.length) ? ALL_TX : TX;
+
+  sourceTx.forEach(t => {
     const d = new Date(`${t.date}T00:00:00`);
     if (d.getFullYear()===info.year && d.getMonth()===info.month){
       const day = d.getDate();
@@ -363,6 +462,7 @@ const renderCalendar = () => {
   }
   grid.innerHTML = cells.join("");
 };
+
 const initCalendar = () => {
   const prevBtn = document.getElementById("calPrev");
   const nextBtn = document.getElementById("calNext");
@@ -376,35 +476,93 @@ let homeChartRef = null;
 const renderHomeCategoryChart = () => {
   const canvas = document.getElementById("homeCategoryChart");
   if (!canvas || typeof Chart === "undefined") return;
-  const {labels, values, total} = aggregateByCategory();
+
+  // 기간 필터 적용
+  let dataTx = TX;
+  if (chartScope === "week") {
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    const start = new Date(end);
+    start.setDate(start.getDate() - 6);
+    const source = (ALL_TX && ALL_TX.length) ? ALL_TX : TX;
+    dataTx = source.filter((t) => {
+      if (!t || !t.date) return false;
+      let d = new Date(t.date);
+      if (isNaN(d.getTime())) {
+        d = new Date(`${t.date}T00:00:00`);
+      }
+      if (isNaN(d.getTime())) return false;
+      return d >= start && d <= end;
+    });
+  }
+
+  const { labels, values, total } = aggregateByCategory(dataTx);
+
   const ctx = canvas.getContext("2d");
   if (homeChartRef) homeChartRef.destroy();
+
   const bgColors = generateColors(labels.length);
+
   homeChartRef = new Chart(ctx, {
-    type:"doughnut",
-    data:{ labels, datasets:[{ data:values, borderWidth:0, backgroundColor:bgColors, hoverOffset:6 }] },
-    options:{
-      responsive:true, maintainAspectRatio:false, cutout:"64%",
-      plugins:{
-        legend:{ display:false },
-        tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${c.raw.toLocaleString()}원 (${(c.raw / c.dataset.data.reduce((a,b)=>a+b,0) * 100).toFixed(1)}%)` } }
-      }
+    type: chartType,   // "doughnut" | "bar" | "line"
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        borderWidth: 0,
+        backgroundColor: bgColors,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: chartType === "doughnut" ? "64%" : 0,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) =>
+              `${c.label}: ${c.raw.toLocaleString()}원 (` +
+              `${(c.raw / c.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(1)}%)`
+          }
+        }
+      },
+      scales: (chartType === "doughnut")
+        ? {}
+        : {
+            y: { beginAtZero: true },
+            x: { beginAtZero: true }
+          }
     }
   });
 
+  // 월 전체 합계는 항상 전체 TX 기준
+  const { total: monthTotal } = aggregateByCategory();
+
   const amountEl = document.querySelector(".amount");
   const percentEl = document.querySelector(".point");
-  if (amountEl) amountEl.innerHTML = `${total.toLocaleString()}<span class="unit">원</span>`;
-  if (percentEl) percentEl.textContent = `${((total / BUDGET) * 100).toFixed(1)}%`;
+  if (amountEl) {
+    amountEl.innerHTML = `${monthTotal.toLocaleString()}<span class="unit">원</span>`;
+  }
+  if (percentEl) {
+    const pct = BUDGET > 0 ? ((monthTotal / BUDGET) * 100).toFixed(1) : "0.0";
+    percentEl.textContent = `${pct}%`;
+  }
 
   const remainingEl = document.querySelector(".remaining-amount");
   const remainingLabel = document.querySelector(".remaining-label");
   const barFill = document.querySelector(".budget-bar-fill");
-  const remaining = BUDGET - total;
-  if (remainingEl) remainingEl.textContent = `${Math.max(remaining,0).toLocaleString()}원`;
-  if (remainingLabel) remainingLabel.style.color = remaining >= 0 ? "#e5e7eb" : "#fb7185";
-  if (barFill){
-    const ratio = total / BUDGET;
+  const remaining = BUDGET - monthTotal;
+
+  if (remainingEl) {
+    remainingEl.textContent = `${Math.max(remaining, 0).toLocaleString()}원`;
+  }
+  if (remainingLabel) {
+    remainingLabel.style.color = remaining >= 0 ? "#e5e7eb" : "#fb7185";
+  }
+  if (barFill) {
+    const ratio = monthTotal / BUDGET;
     barFill.style.width = `${Math.max(0, Math.min(ratio, 1.3)) * 100}%`;
   }
 
@@ -413,18 +571,53 @@ const renderHomeCategoryChart = () => {
   const topAmountEl= document.getElementById("cat-top-amount");
   const pillsEl    = document.getElementById("categoryPills");
 
-  if (values.length){
-    const maxIdx = values.reduce((best,v,i,arr)=> v>arr[best]?i:best, 0);
-    const topCat = labels[maxIdx], topVal = values[maxIdx];
-    if (bubbleEl) bubbleEl.textContent = clampText(`이번 달 ${topCat} 지출이 가장 높아요`, 40);
-    if (topNameEl) topNameEl.textContent = topCat;
-    if (topAmountEl) topAmountEl.textContent = `${topVal.toLocaleString()}원 (${((topVal/total)*100).toFixed(1)}%)`;
+  const topBox =
+    document.getElementById("top-category-box") ||
+    document.querySelector(".top-category") ||
+    (topNameEl && topNameEl.parentElement) ||
+    null;
+
+  if (values.length) {
+    const maxIdx = values.reduce(
+      (best, v, i, arr) => (v > arr[best] ? i : best),
+      0
+    );
+    const topCat = labels[maxIdx];
+    const topVal = values[maxIdx];
+    if (bubbleEl) {
+      const periodLabel = (chartScope === "week") ? "이번 주" : "이번 달";
+      bubbleEl.textContent = clampText(
+        `${periodLabel} ${topCat} 지출이 가장 높아요`,
+        40
+      );
+    }
+
     updateConsumerType(topCat);
-  }else{
+
+    // 원형 차트일 때만 TOP CATEGORY 표시
+    if (chartType === "doughnut") {
+      if (topBox) topBox.style.display = "";
+      if (topNameEl) topNameEl.textContent = topCat;
+      if (topAmountEl) {
+        topAmountEl.textContent = `${topVal.toLocaleString()}원 (${(
+          (topVal / total) *
+          100
+        ).toFixed(1)}%)`;
+      }
+    } else {
+      if (topBox) topBox.style.display = "none";
+    }
+  } else {
     if (bubbleEl) bubbleEl.textContent = "이번 달 지출 데이터가 없습니다";
-    if (topNameEl) topNameEl.textContent = "-";
-    if (topAmountEl) topAmountEl.textContent = "-";
     updateConsumerType(null);
+
+    if (chartType === "doughnut") {
+      if (topBox) topBox.style.display = "";
+      if (topNameEl) topNameEl.textContent = "-";
+      if (topAmountEl) topAmountEl.textContent = "-";
+    } else {
+      if (topBox) topBox.style.display = "none";
+    }
   }
 
   if (pillsEl){
@@ -441,26 +634,121 @@ const renderHomeCategoryChart = () => {
   }
 };
 
+function initChartControls() {
+  const scopeBtns = document.querySelectorAll(".chart-chip");
+  scopeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      scopeBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      chartScope = btn.dataset.scope || "month";
+      renderHomeCategoryChart();
+    });
+  });
+
+  // 타입 토글
+  const typeBtns = document.querySelectorAll(".chart-type-btn");
+  typeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      typeBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      chartType = btn.dataset.type || "doughnut";
+      renderHomeCategoryChart();
+    });
+  });
+}
+
 /* ---- 감정 차트/팝업 ---- */
+// 감정 차트
 let emotionChartRef = null;
 const renderEmotionChart = () => {
   const canvas = document.getElementById("emotionChart");
   if (!canvas || typeof Chart === "undefined") return;
+
+  const stats = calcEmotionStats();
+  const keys = Object.keys(stats);
+  const labels = keys.map(k => EMOTION_LABELS[k]);
+  const values = keys.map(k => stats[k]);
+
   const ctx = canvas.getContext("2d");
-  const keys = Object.keys(EMOTION_RATIO);
-  const labels = keys.map(k=>EMOTION_LABELS[k]||k);
-  const values = keys.map(k=>EMOTION_RATIO[k]);
   if (emotionChartRef) emotionChartRef.destroy();
+
   emotionChartRef = new Chart(ctx, {
-    type:"bar",
-    data:{ labels, datasets:[{ data:values, backgroundColor:generateColors(values.length), borderWidth:0, borderRadius:6 }] },
-    options:{
-      indexAxis:"y", responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:(c)=>`${c.raw}%` } } },
-      scales:{ x:{ beginAtZero:true, max:100, ticks:{ callback:(v)=>`${v}%` }, grid:{display:false}}, y:{ grid:{display:false} } }
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: generateColors(values.length),
+        borderWidth: 0,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend:{display:false} },
+      scales: {
+        x: { beginAtZero:true, max:100, ticks:{ callback:v => v + "%" } },
+        y: { }
+      }
     }
   });
 };
+// 만족도 차트 (emotionChart2)
+let emotionChartRef2 = null;
+const renderEmotionChart2 = () => {
+  const canvas = document.getElementById("emotionChart2");
+  if (!canvas || typeof Chart === "undefined") return;
+  const stats = calcSatisfactionStats(); // {1:?,2:?,3:?,4:?,5:?}
+  const labels = ["만족도 1", "만족도 2", "만족도 3", "만족도 4", "만족도 5"];
+  const values = [stats[1], stats[2], stats[3], stats[4], stats[5]];
+  const ctx = canvas.getContext("2d");
+  if (emotionChartRef2) emotionChartRef2.destroy();
+  emotionChartRef2 = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: generateColors(values.length),
+        borderWidth: 0,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) => `${c.raw}회`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            font: { size: 12 }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            font: { size: 12 }
+          }
+        }
+      }
+    }
+  });
+};
+
+
 const updateEmotionDetail = (emotionKey, labelText, ratioText) => {
   const modal = document.getElementById("emotionModal"); if(!modal) return;
   const titleEl = document.getElementById("emotionModalTitle");
@@ -472,7 +760,8 @@ const updateEmotionDetail = (emotionKey, labelText, ratioText) => {
   const heroLabel = document.getElementById("emotionHeroLabel");
 
   const label = labelText || (emotionKey ? EMOTION_LABELS[emotionKey] : "");
-  const ratio = ratioText || (emotionKey && EMOTION_RATIO[emotionKey]!=null ? `${EMOTION_RATIO[emotionKey]}%` : "-");
+  const stats = calcEmotionStats();
+  const ratio = stats[emotionKey] + "%";
   const comment = emotionKey && EMOTION_COMMENTS[emotionKey] ? EMOTION_COMMENTS[emotionKey] : "이 감정에 해당하는 소비를 정리했어요.";
 
   if (titleEl) titleEl.textContent = label || "감정 소비 내역";
@@ -500,6 +789,7 @@ const updateEmotionDetail = (emotionKey, labelText, ratioText) => {
   }
   modal.classList.add("show");
 };
+
 
 /* ================== 지출 기록 패널 ================== */
 
@@ -619,7 +909,7 @@ function renderRecordPanel() {
           <div class="item-right">
             <span class="item-price">${amount}원</span>
             <button type="button" class="item-delete-btn" data-id="${t.id ?? ""}" aria-label="삭제">
-              <img src="img/delete.png" alt="삭제" class="item-delete-icon" />
+              <img src="assets/delete.png" alt="삭제" class="item-delete-icon" />
             </button>
           </div>
         </div>
@@ -708,6 +998,8 @@ function renderRecordPanel() {
         renderRecordPanel();
         renderHomeCategoryChart();
         renderEmotionChart();
+        renderEmotionChart2();
+        renderEmotionCards();
         renderCalendar();
 
         showToast("지출 기록이 삭제되었습니다.");
@@ -1213,6 +1505,7 @@ async function initHome() {
   const y = now.getFullYear();
   const m = now.getMonth() + 1;
   await loadMonthlyData(y, m);
+  initChartControls();
 
   // 3) 나머지 기존 initHome 내용 그대로 유지
   const summaryView  = document.getElementById("summaryView");
