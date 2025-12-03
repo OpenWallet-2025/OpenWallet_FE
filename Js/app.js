@@ -12,10 +12,10 @@ try {
 
 /* ---- 전역 상수 ---- */
 // 배포/공용 BE 주소 (지출, 트렌드, 리포트 등)
-const API_BASE_URL = "http://openwallet2025.com";
+const API_BASE_URL = "http://openwallet2025.com/api";
 
 // OCR만 로컬 FastAPI로 분리 (2025-11-30)
-const OCR_API_BASE_URL = "http://openwallet2025.com";
+const OCR_API_BASE_URL = "http://openwallet2025.com/api";
 
 const OCR_RECEIPT_URL    = `${OCR_API_BASE_URL}/ocr-receipt`;      //  로컬 fastapi
 const TRENDS_SUMMARY_URL = `${API_BASE_URL}/trends/summary`;       // 서버
