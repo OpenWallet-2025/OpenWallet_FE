@@ -15,7 +15,7 @@ try {
 const API_BASE_URL = "http://openwallet2025.com/api";
 
 // OCR만 로컬 FastAPI로 분리 (2025-11-30)
-const OCR_API_BASE_URL = "http://127.0.0.1:8000";
+const OCR_API_BASE_URL = "http://openwallet2025.com/api";
 
 const OCR_RECEIPT_URL    = `${OCR_API_BASE_URL}/ocr-receipt`;      //  로컬 fastapi
 const TRENDS_SUMMARY_URL = `${API_BASE_URL}/trends/summary`;       // 서버
