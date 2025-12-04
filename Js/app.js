@@ -249,11 +249,12 @@ const API = {
   },
 
   /** AI 리포트 질문 */
-  async askReport(question) {
+  async askReport(inputQuestion) {
+    const bodyData = { start_date: "2025-11-01", end_date: "2025-12-31", question :inputQuestion}
     const res = await fetch(REPORT_CHAT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }), // ⚠️ Swagger에서 body 스키마 확인
+      body: JSON.stringify({ bodyData }), // ⚠️ Swagger에서 body 스키마 확인
     });
     if (!res.ok) throw new Error(`askReport HTTP ${res.status}`);
     return res.json();
