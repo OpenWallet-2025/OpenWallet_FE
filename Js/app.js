@@ -254,7 +254,7 @@ const API = {
     const res = await fetch(REPORT_CHAT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bodyData }), // ⚠️ Swagger에서 body 스키마 확인
+      body: JSON.stringify(bodyData), // ⚠️ Swagger에서 body 스키마 확인
     });
     if (!res.ok) throw new Error(`askReport HTTP ${res.status}`);
     return res.json();
