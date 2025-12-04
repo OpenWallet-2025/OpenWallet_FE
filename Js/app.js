@@ -28,7 +28,7 @@ const CATEGORY_ENUM_TO_KR = {
       "EDUCATION": "교육·자기계발",
       "CLOTHING": "의류",
       "ETC": "기타",
-      "SUBSCRIBE": "정기구독"
+      "SUBSCRIPTION": "정기구독"
     };
 
 const CATEGORY_KR_TO_ENUM = {
@@ -40,8 +40,219 @@ const CATEGORY_KR_TO_ENUM = {
       "교통비": "TRANSPORT",
       "취미·문화생활": "CULTURE",
       "기타": "ETC",
-      "정기구독": "SUBSCRIBE"
+      "정기구독": "SUBSCRIPTION"
     };
+
+// ================= 정기구독 localStorage + 스케줄러 =================
+const SUBS_STORAGE_KEY = "ow_subscriptions";
+
+/** 정기구독 목록 불러오기 */
+function loadSubscriptionsFromStorage() {
+  try {
+    const raw = localStorage.getItem(SUBS_STORAGE_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error("[subscription] load error:", e);
+    return [];
+  }
+}
+
+/** 정기구독 목록 저장 */
+function saveSubscriptionsToStorage(list) {
+  try {
+    localStorage.setItem(SUBS_STORAGE_KEY, JSON.stringify(list || []));
+  } catch (e) {
+    console.error("[subscription] save error:", e);
+  }
+}
+
+/**
+ * 지출 추가 payload 기반으로 정기구독 정보를 upsert
+ * payload: { title, date:"YYYY-MM-DD", price, category:"SUBSCRIPTION", emotion, memo, satisfaction, ... }
+ */
+function upsertSubscriptionFromExpense(payload) {
+  try {
+    if (!payload || payload.category !== "SUBSCRIPTION") return;
+
+    const subs = loadSubscriptionsFromStorage();
+    const dateStr = payload.date;
+    if (!dateStr) return;
+
+    const parts = String(dateStr).split("-");
+    const billingDay = parseInt(parts[2] || "1", 10) || 1;
+    const idx = subs.findIndex(
+      (s) =>
+        s.title === (payload.title || "") &&
+        Number(s.price || 0) === Number(payload.price || 0) &&
+        Number(s.billingDay || 0) === billingDay
+    );
+
+    const startDate = dateStr;
+    const base = {
+      title: payload.title || "정기구독",
+      billingDay,
+      price: payload.price || 0,
+      category: "SUBSCRIPTION",
+      emotion: payload.emotion || "NEUTRAL",
+      memo: payload.memo || "",
+      satisfaction:
+        typeof payload.satisfaction === "number"
+          ? payload.satisfaction
+          : null,
+      startDate,
+      lastChargedYm: startDate.slice(0, 7),
+    };
+
+    if (idx >= 0) {
+      const old = subs[idx] || {};
+      subs[idx] = {
+        ...old,
+        ...base,
+        startDate: old.startDate || base.startDate,
+        lastChargedYm: old.lastChargedYm || base.lastChargedYm,
+      };
+    } else {
+      subs.push({
+        id: `sub-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 8)}`,
+        ...base,
+      });
+    }
+
+    saveSubscriptionsToStorage(subs);
+  } catch (e) {
+    console.warn("[subscription] upsert error:", e);
+  }
+}
+
+function formatYm(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+function nextMonth(ym) {
+  const [yStr, mStr] = String(ym).split("-");
+  let y = parseInt(yStr, 10);
+  let m = parseInt(mStr, 10);
+  if (!y || !m) return ym;
+  m += 1;
+  if (m > 12) {
+    m = 1;
+    y += 1;
+  }
+  return `${y}-${String(m).padStart(2, "0")}`;
+}
+
+function makeBillingDate(ym, billingDay) {
+  const [yStr, mStr] = String(ym).split("-");
+  let y = parseInt(yStr, 10);
+  let m = parseInt(mStr, 10);
+  if (!y || !m) return new Date();
+
+  // 해당 달의 마지막 날
+  const lastDay = new Date(y, m, 0).getDate();
+  const d = Math.min(Math.max(1, billingDay || 1), lastDay);
+  return new Date(y, m - 1, d);
+}
+
+/** 정기구독 항목으로부터 /expenses에 자동 지출 생성 */
+async function createAutoExpenseFromSubscription(sub, billDate) {
+  const yyyy = billDate.getFullYear();
+  const mm = String(billDate.getMonth() + 1).padStart(2, "0");
+  const dd = String(billDate.getDate()).padStart(2, "0");
+  const dateStr = `${yyyy}-${mm}-${dd}`;
+
+  const payload = {
+    title: sub.title || "정기구독",
+    date: dateStr,
+    price: Number(sub.price || 0),
+    category: "SUBSCRIPTION",
+    emotion: sub.emotion || "NEUTRAL",
+    memo: sub.memo
+      ? `[정기구독 자동 결제] ${sub.memo}`
+      : "[정기구독 자동 결제]",
+    satisfaction:
+      typeof sub.satisfaction === "number" ? sub.satisfaction : null,
+  };
+
+  try {
+    await API.createTx(payload);
+  } catch (e) {
+    console.error(
+      "[subscription] auto create /expenses 실패:",
+      sub,
+      e
+    );
+    throw e;
+  }
+}
+
+/**
+ * 앱 실행 시 한 번 호출되는 정기구독 스케줄러
+ * - lastChargedYm 이후부터 오늘까지 달을 훑으면서
+ *   청구일이 지난 달들은 /expenses로 자동 생성
+ */
+async function runSubscriptionScheduler() {
+  let subs = loadSubscriptionsFromStorage();
+  if (!subs.length) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayYm = formatYm(today);
+
+  let changed = false;
+
+  for (let i = 0; i < subs.length; i++) {
+    const sub = subs[i];
+    if (!sub || !sub.billingDay) continue;
+    if (!sub.startDate) continue;
+
+    const startDateObj = new Date(`${sub.startDate}T00:00:00`);
+    if (isNaN(startDateObj.getTime())) continue;
+    if (startDateObj > today) continue; // 미래 시작 구독은 패스
+
+    let lastYm = sub.lastChargedYm || sub.startDate.slice(0, 7);
+    if (!lastYm) continue;
+
+    // lastYm 다음 달부터 시작
+    let cursorYm = nextMonth(lastYm);
+
+    while (cursorYm <= todayYm) {
+      const billDate = makeBillingDate(cursorYm, sub.billingDay);
+
+      // 아직 오지 않은 달이면 여기서 종료
+      if (billDate > today) break;
+
+      // 시작일 이전 달은 건너뛰기
+      if (billDate < startDateObj) {
+        lastYm = cursorYm;
+        cursorYm = nextMonth(cursorYm);
+        continue;
+      }
+
+      try {
+        await createAutoExpenseFromSubscription(sub, billDate);
+        lastYm = cursorYm;
+        cursorYm = nextMonth(cursorYm);
+        changed = true;
+      } catch (e) {
+        // 이 구독에서 에러 나면 더 진행하지 않고 멈춘다
+        break;
+      }
+    }
+
+    sub.lastChargedYm = lastYm;
+  }
+
+  if (changed) {
+    saveSubscriptionsToStorage(subs);
+  }
+}
+
 
 // Swagger에 정의된 엔드포인트 (실제 path는 Swagger 보고 수정!)
 const TX_LIST_URL       = `${API_BASE_URL}/expenses`;   // GET /expenses
@@ -185,7 +396,7 @@ const CATEGORY_EMOJI = {
   "교육·자기계발": "📘",  // EDUCATION
   "의류": "👕",          // CLOTHING
   "기타": "🛍️",          // ETC
-  "정기구독": "🧾"        // SUBSCRIBE
+  "정기구독": "🧾"        // SUBSCRIPTION
 };
 TX.forEach((t, i) => { t.emotion = EMOTION_KEYS[i % EMOTION_KEYS.length]; });
 
@@ -1386,6 +1597,12 @@ const initAddPanel = () =>{
 
       try {
         await API.createTx(payload);
+
+        // 카테고리가 SUBSCRIPTION이면 정기구독 localStorage에 반영
+        if (categoryEnum === "SUBSCRIPTION") {
+          upsertSubscriptionFromExpense(payload);
+        }
+
         showToast("지출이 저장되었습니다.");
         closeAddPanel();
 
@@ -1496,6 +1713,9 @@ async function initHome() {
     BUDGET = profileBudget;
     console.log("[profile] BUDGET synced from profile:", BUDGET);
   }
+
+  // 0-1) 정기구독 자동 결제 스케줄러 실행
+  await runSubscriptionScheduler();
 
   // 1) 캘린더 버튼 이벤트 & 기본 렌더 설정
   initCalendar();

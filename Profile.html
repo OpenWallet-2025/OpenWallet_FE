@@ -101,32 +101,27 @@
         </div>
       </section>
 
-      <!-- 정기지출 -->
-      <section class="profile-section">
+      <!-- 정기구독 -->
+      <section class="profile-section" id="subscribeSection">
         <div class="profile-card">
           <div class="profile-card-inner">
             <div class="profile-section-header">
-              <h2 class="profile-section-title">정기지출</h2>
-              <div class="favorite-actions">
-                <button type="button" class="text-icon-btn">
-                  <img src="assets/star.png" alt="" class="icon-img" />
-                  <span>정기지출 추가</span>
-                </button>
+              <h2 class="profile-section-title">정기구독</h2>
+              <div class="favorite-actions subscribe-actions">
               </div>
             </div>
-
-            <ul class="favorite-list">
-              <li class="favorite-item">
+            <ul class="favorite-list subscribe-list">
+              <li class="favorite-item subscribe-item">
                 <p class="favorite-name">상품명: 커피</p>
                 <p class="favorite-meta">날짜: 매월 28일, 금액: 4,900원, 카테고리: 식비</p>
-                <button class="favorite-delete-btn" data-id="UUID...">
+                <button class="favorite-delete-btn subscribe-delete-btn" data-id="UUID...">
                   <img src="assets/delete.png" class="favorite-delete-icon">
                 </button>
               </li>
-              <li class="favorite-item">
+              <li class="favorite-item subscribe-item">
                 <p class="favorite-name">상품명: 챗지피티</p>
                 <p class="favorite-meta">날짜: 매월 20일, 금액: 32,751원, 카테고리: 기타</p>
-                <button class="favorite-delete-btn" data-id="UUID...">
+                <button class="favorite-delete-btn subscribe-delete-btn" data-id="UUID...">
                   <img src="assets/delete.png" class="favorite-delete-icon">
                 </button>
               </li>
@@ -220,10 +215,6 @@
       </main>
     </div>
   </div>
-
-    <!-- ===========================
-      지출추가 패널 (메인과 동일)
-      =========================== -->
   <div class="add-panel-backdrop" id="addPanel">
     <div class="add-panel">
       <div class="add-panel-handle"></div>

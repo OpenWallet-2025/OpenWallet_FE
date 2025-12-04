@@ -16,6 +16,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---------------- 프로필 상수/유틸 ----------------
 const PROFILE_STORAGE_KEY = "ow_profile";
+const API_BASE_URL = "http://openwallet2025.com/api";
+
+const SUBSCRIPTION_STORAGE_KEY = "ow_subscriptions";
+
+function loadSubscriptionsFromStorage() {
+  try {
+    const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error("[profile] subscription load error:", e);
+    return [];
+  }
+}
+
+function saveSubscriptionsToStorage(list) {
+  try {
+    localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.error("[profile] subscription save error:", e);
+  }
+}
+
+const EMOTION_LABELS = {
+  HAPPY: "행복 소비",
+  EXCITED: "들뜸 소비",
+  SAD: "우울 소비",
+  ANGRY: "화남 소비",
+  STRESSED: "스트레스 소비",
+  NEUTRAL: "무감정 소비",
+};
+
+const EMOTION_EMOJIS = {
+  HAPPY: "😊",
+  EXCITED: "🤩",
+  SAD: "😢",
+  ANGRY: "😡",
+  STRESSED: "😣",
+  NEUTRAL: "😐",
+};
+
 
 const CATEGORY_KR_TO_ENUM = {
   "식비": "FOOD",
@@ -26,7 +68,7 @@ const CATEGORY_KR_TO_ENUM = {
   "교육·자기계발": "EDUCATION",
   "의류": "CLOTHING",
   "기타": "ETC",
-  "정기지출": "SUBSCRIBE"
+  "정기구독": "SUBSCRIPTION"
 };
 
 const CATEGORY_ENUM_TO_KR = {
@@ -38,7 +80,7 @@ const CATEGORY_ENUM_TO_KR = {
   EDUCATION: "교육·자기계발",
   CLOTHING: "의류",
   ETC: "기타",
-  SUBSCRIBE: "정기지출"
+  SUBSCRIPTION: "정기구독"
 };
 
 /** 숫자를 1000단위 콤마로 포맷 (예: 850000 -> "850,000") */
@@ -191,6 +233,116 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// ---------------- 정기구독 목록 불러오기 ----------------
+async function loadSubscribesToView() {
+  const subSection = document.getElementById("subscribeSection");
+  if (!subSection) return;
+
+  const listEl = subSection.querySelector(".favorite-list");
+  if (!listEl) return;
+
+  // 기존 목록 비우기
+  listEl.innerHTML = "";
+
+  const subs = loadSubscriptionsFromStorage();
+
+  if (!subs.length) {
+    listEl.innerHTML = `
+      <li class="favorite-item subscribe-item">
+        <p class="favorite-name">등록된 정기구독이 없습니다.</p>
+      </li>
+    `;
+    return;
+  }
+
+  subs.forEach((item) => {
+    const title = item.title || "이름 없음";
+    const priceNum = Number(item.price || 0);
+    const billingDay = item.billingDay || null;
+    const catEnum = item.category || "ETC";
+    const catKr = CATEGORY_ENUM_TO_KR[catEnum] || "기타";
+
+    const emoKey = item.emotion || null;
+    const emoLabel = emoKey ? (EMOTION_LABELS[emoKey] || emoKey) : "-";
+    const emoEmoji = emoKey ? (EMOTION_EMOJIS[emoKey] || "") : "";
+
+    const satisfaction =
+      typeof item.satisfaction === "number"
+        ? `${item.satisfaction}/5`
+        : "-";
+
+    const li = document.createElement("li");
+    li.className = "favorite-item subscribe-item";
+
+    li.innerHTML = `
+      <div class="favorite-left">
+        <p class="favorite-name">상품명: ${title}</p>
+        <p class="favorite-meta">
+          날짜: ${
+            billingDay ? `매월 ${billingDay}일` : "날짜 미지정"
+          }, 금액: ${formatNumberWithComma(priceNum)}원, 카테고리: ${catKr}
+        </p>
+        <p class="favorite-meta">
+          감정: ${emoEmoji} ${emoLabel}, 만족도: ${satisfaction}
+        </p>
+      </div>
+
+      <button class="favorite-delete-btn subscribe-delete-btn" data-id="${item.id}">
+        <img src="assets/delete.png" class="favorite-delete-icon">
+      </button>
+    `;
+
+    listEl.appendChild(li);
+  });
+
+  // 삭제 버튼 이벤트 (localStorage에서만 삭제)
+  subSection
+    .querySelectorAll(".subscribe-delete-btn")
+    .forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        if (!id) return;
+
+        const html = `
+          <header class="add-header">
+            <h1>정기구독 삭제</h1>
+          </header>
+
+          <div class="add-form">
+            <p style="font-size:14px; margin-bottom:16px;">
+              선택한 정기구독 항목을 삭제하시겠습니까?<br />
+              (지출 기록 자체는 삭제되지 않습니다)
+            </p>
+
+            <div class="add-actions">
+              <button type="button" class="add-submit" id="subDeleteYes">삭제</button>
+              <button type="button" class="add-cancel" id="subDeleteNo">취소</button>
+            </div>
+          </div>
+        `;
+
+        openAddPanel(html);
+
+        document
+          .getElementById("subDeleteNo")
+          .addEventListener("click", () => {
+            closeAddPanel();
+          });
+
+        document
+          .getElementById("subDeleteYes")
+          .addEventListener("click", () => {
+            const subs = loadSubscriptionsFromStorage();
+            const next = subs.filter((s) => String(s.id) !== String(id));
+            saveSubscriptionsToStorage(next);
+
+            closeAddPanel();
+            loadSubscribesToView();
+          });
+      });
+    });
+}
+
 // ---------------- 즐겨찾기 목록 불러오기 ----------------
 async function loadFavoritesToView() {
   const favSection = document.querySelectorAll(".profile-section")[2];
@@ -203,7 +355,7 @@ async function loadFavoritesToView() {
   listEl.innerHTML = "";
 
   try {
-    const res = await fetch("http://openwallet2025.com/api/favorite");
+    const res = await fetch(`${API_BASE_URL}/favorite`);
     if (!res.ok) throw new Error("API 응답 오류");
 
     const data = await res.json();
@@ -241,8 +393,8 @@ async function loadFavoritesToView() {
       listEl.appendChild(li);
     });
 
-    // 삭제 버튼 이벤트 (항목별 쓰레기통)
-    document.querySelectorAll(".favorite-delete-btn").forEach((btn) => {
+    // 즐겨찾기 삭제 버튼 이벤트 (항목별 쓰레기통)
+    favSection.querySelectorAll(".favorite-delete-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
         if (!id) return;
@@ -277,7 +429,7 @@ async function loadFavoritesToView() {
           .addEventListener("click", async () => {
             try {
               const res = await fetch(
-                `http://openwallet2025.com/api/favorite/${id}`,
+                `${API_BASE_URL}/favorite/${id}`,
                 {
                   method: "DELETE",
                 }
@@ -297,6 +449,15 @@ async function loadFavoritesToView() {
     console.error("즐겨찾기 로딩 오류:", err);
   }
 }
+
+// ---------------- 정기구독 추가 버튼 ----------------
+document.addEventListener("DOMContentLoaded", () => {
+  const subSection = document.getElementById("subscribeSection");
+  if (!subSection) return;
+
+  // 페이지 들어오면 localStorage에서 정기구독 목록 읽어서 렌더링
+  loadSubscribesToView();
+});
 
 // ---------------- 즐겨찾기 추가 버튼 ----------------
 document.addEventListener("DOMContentLoaded", () => {
@@ -388,7 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-          const res = await fetch("http://openwallet2025.com/api/favorite", {
+          const res = await fetch(`${API_BASE_URL}/favorite`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
