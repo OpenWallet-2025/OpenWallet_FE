@@ -2,9 +2,9 @@ name: frontend-ci-workflow
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [develop]
+    paths-ignore:
+      - '.github/workflows/**'
   workflow_dispatch:
     
 permissions:
@@ -13,33 +13,9 @@ permissions:
   packages: write
   
 jobs:
-
-  push-changes:
-    runs-on: ubuntu-latest
-    steps:
-       - name: Checkout
-         uses: actions/checkout@v4
-       - name: Show LastCommit SHA
-         run: echo "git last commit hash tage:$GITHUB_SHA"
-
-
-  code-test:
-    runs-on: ubuntu-latest
-    needs: push-changes
-    steps:
-      - uses: actions/checkout@v4
-      - name: Test start
-        run: 
-          echo "code test start!"
-      - name: Test end
-        run: 
-          echo "code test end!"
-      
+   
   docker-build-and-push:
     runs-on: ubuntu-latest
-    needs: code-test
-    
-  
     steps:
       - uses: actions/checkout@v4
   
