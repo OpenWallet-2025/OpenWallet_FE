@@ -49,7 +49,7 @@ const TX_CREATE_URL     = `${API_BASE_URL}/expenses`;   // POST /expenses
 
 // 아래 둘은 Swagger에 없으니 당장은 미사용/추후 구현
 const MONTH_SUMMARY_URL = `${API_BASE_URL}/summary/monthly`;  // (백엔드에서 만들면 사용)
-const REPORT_CHAT_URL   = `${API_BASE_URL}/report/chat`;      // (AI 리포트용, 나중에)
+const REPORT_CHAT_URL   = `${API_BASE_URL}/report`;      // (AI 리포트용, 나중에)
 
 
 /* ---- 데모 데이터/상수 ---- */
