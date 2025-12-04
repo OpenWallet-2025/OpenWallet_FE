@@ -1484,7 +1484,7 @@ function initTrendPage(){
       const d = parseInt(days?.value||"7",10);
       const m = parseInt(max?.value||"24",10);
       if(!keywords.length){ showToast("키워드를 1개 이상 입력해 주세요."); return; }
-      runTrendSummary({ keywords, days: isNaN(d)?7:d, max_articles: isNaN(m)?24:m });
+      runTrendSummary({ keywords, days: isNaN(d) ? 7 : d, max_articles: isNaN(m) ? 24 : m, model: "kakaocorp/kanana-1.5-2.1b-instruct-2505", db_path: "./openwallet_trends.db" });
     });
   }
 }
