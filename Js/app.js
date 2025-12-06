@@ -1,3 +1,6 @@
+// app.js
+// 2025-12-07
+
 try {
   const loggedIn = localStorage.getItem("ow_logged_in") === "true";
   if (!loggedIn) {
@@ -6,19 +9,10 @@ try {
 } catch (e) {
   console.warn("localStorage 사용 불가", e);
 }
-/* =========================
-   OpenWallet - app.js (통합본, 2025-11-29)
-   ========================= */
 
-/* ---- 전역 상수 ---- */
-// 배포/공용 BE 주소 (지출, 트렌드, 리포트 등)
 const API_BASE_URL = "http://openwallet2025.com/api";
-
-// OCR만 로컬 FastAPI로 분리 (2025-11-30)
-const OCR_API_BASE_URL = "http://openwallet2025.com/api";
-
-const OCR_RECEIPT_URL    = `${OCR_API_BASE_URL}/ocr-receipt`;      //  로컬 fastapi
-const TRENDS_SUMMARY_URL = `${API_BASE_URL}/trends/summary`;       // 서버
+const OCR_RECEIPT_URL    = `${API_BASE_URL}/ocr-receipt`;     
+const TRENDS_SUMMARY_URL = `${API_BASE_URL}/trends/summary`;       
 const CATEGORY_ENUM_TO_KR = {
       "FOOD": "식비",
       "LIVING": "생활",
@@ -43,10 +37,8 @@ const CATEGORY_KR_TO_ENUM = {
       "정기구독": "SUBSCRIPTION"
     };
 
-// ================= 정기구독 localStorage + 스케줄러 =================
 const SUBS_STORAGE_KEY = "ow_subscriptions";
 
-/** 정기구독 목록 불러오기 */
 function loadSubscriptionsFromStorage() {
   try {
     const raw = localStorage.getItem(SUBS_STORAGE_KEY);
@@ -59,7 +51,6 @@ function loadSubscriptionsFromStorage() {
   }
 }
 
-/** 정기구독 목록 저장 */
 function saveSubscriptionsToStorage(list) {
   try {
     localStorage.setItem(SUBS_STORAGE_KEY, JSON.stringify(list || []));
@@ -68,10 +59,6 @@ function saveSubscriptionsToStorage(list) {
   }
 }
 
-/**
- * 지출 추가 payload 기반으로 정기구독 정보를 upsert
- * payload: { title, date:"YYYY-MM-DD", price, category:"SUBSCRIPTION", emotion, memo, satisfaction, ... }
- */
 function upsertSubscriptionFromExpense(payload) {
   try {
     if (!payload || payload.category !== "SUBSCRIPTION") return;
@@ -159,7 +146,6 @@ function makeBillingDate(ym, billingDay) {
   return new Date(y, m - 1, d);
 }
 
-/** 정기구독 항목으로부터 /expenses에 자동 지출 생성 */
 async function createAutoExpenseFromSubscription(sub, billDate) {
   const yyyy = billDate.getFullYear();
   const mm = String(billDate.getMonth() + 1).padStart(2, "0");
@@ -191,11 +177,6 @@ async function createAutoExpenseFromSubscription(sub, billDate) {
   }
 }
 
-/**
- * 앱 실행 시 한 번 호출되는 정기구독 스케줄러
- * - lastChargedYm 이후부터 오늘까지 달을 훑으면서
- *   청구일이 지난 달들은 /expenses로 자동 생성
- */
 async function runSubscriptionScheduler() {
   let subs = loadSubscriptionsFromStorage();
   if (!subs.length) return;
@@ -213,21 +194,18 @@ async function runSubscriptionScheduler() {
 
     const startDateObj = new Date(`${sub.startDate}T00:00:00`);
     if (isNaN(startDateObj.getTime())) continue;
-    if (startDateObj > today) continue; // 미래 시작 구독은 패스
+    if (startDateObj > today) continue; 
 
     let lastYm = sub.lastChargedYm || sub.startDate.slice(0, 7);
     if (!lastYm) continue;
 
-    // lastYm 다음 달부터 시작
     let cursorYm = nextMonth(lastYm);
 
     while (cursorYm <= todayYm) {
       const billDate = makeBillingDate(cursorYm, sub.billingDay);
 
-      // 아직 오지 않은 달이면 여기서 종료
       if (billDate > today) break;
 
-      // 시작일 이전 달은 건너뛰기
       if (billDate < startDateObj) {
         lastYm = cursorYm;
         cursorYm = nextMonth(cursorYm);
@@ -240,7 +218,6 @@ async function runSubscriptionScheduler() {
         cursorYm = nextMonth(cursorYm);
         changed = true;
       } catch (e) {
-        // 이 구독에서 에러 나면 더 진행하지 않고 멈춘다
         break;
       }
     }
@@ -253,17 +230,12 @@ async function runSubscriptionScheduler() {
   }
 }
 
+const TX_LIST_URL       = `${API_BASE_URL}/expenses`;   
+const TX_CREATE_URL     = `${API_BASE_URL}/expenses`;   
 
-// Swagger에 정의된 엔드포인트 (실제 path는 Swagger 보고 수정!)
-const TX_LIST_URL       = `${API_BASE_URL}/expenses`;   // GET /expenses
-const TX_CREATE_URL     = `${API_BASE_URL}/expenses`;   // POST /expenses
+const MONTH_SUMMARY_URL = `${API_BASE_URL}/summary/monthly`;  
+const REPORT_CHAT_URL   = `${API_BASE_URL}/report`;     
 
-// 아래 둘은 Swagger에 없으니 당장은 미사용/추후 구현
-const MONTH_SUMMARY_URL = `${API_BASE_URL}/summary/monthly`;  // (백엔드에서 만들면 사용)
-const REPORT_CHAT_URL   = `${API_BASE_URL}/report`;      // (AI 리포트용, 나중에)
-
-
-/* ---- 데모 데이터/상수 ---- */
 let TX = [
   { date: "2025-11-01", cat: "식비", amount: 26000 },
   { date: "2025-11-02", cat: "취미·문화생활", amount: 54000 },
@@ -278,14 +250,11 @@ let TX = [
 
 let ALL_TX = [];
 let BUDGET = 850000;
-// 🔹 프로필 localStorage 연동 (예산 공유용)
 const PROFILE_STORAGE_KEY = "ow_profile";
 
-// 차트 상태 (기간 / 타입)
 let chartScope = "month";      // "month" | "week"
 let chartType  = "doughnut";   // "doughnut" | "bar" | "line"
 
-/** localStorage에서 프로필 예산 가져오기 */
 function loadProfileBudget() {
   try {
     const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
@@ -307,7 +276,6 @@ function loadProfileBudget() {
   }
 }
 
-/** TX 기반 감정 비율 계산 (없으면 데모 값(EMOTION_RATIO) 사용) */
 function calcEmotionStats() {
   const counts = {
     HAPPY: 0,
@@ -330,12 +298,10 @@ function calcEmotionStats() {
   const ratio = {};
 
   if (total > 0) {
-    // 실제 데이터가 있으면 그걸로 퍼센트 계산
     Object.keys(counts).forEach((key) => {
       ratio[key] = Number(((counts[key] / total) * 100).toFixed(1));
     });
   } else {
-    // 감정 데이터가 하나도 없으면, 데모 비율(EMOTION_RATIO) 사용
     Object.keys(counts).forEach((key) => {
       ratio[key] =
         typeof EMOTION_RATIO[key] === "number" ? EMOTION_RATIO[key] : 0;
@@ -345,7 +311,6 @@ function calcEmotionStats() {
   return ratio;
 }
 
-/* 감정 카드 업데이트 */
 function renderEmotionCards() {
   const ratio = calcEmotionStats();
 
@@ -356,7 +321,6 @@ function renderEmotionCards() {
   });
 }
 
-/* 만족도 계산 부분 */
 function calcSatisfactionStats() {
   const counts = { 1:0, 2:0, 3:0, 4:0, 5:0 };
 
@@ -408,29 +372,21 @@ const CONSUMER_TYPES = {
 };
 const DEFAULT_CONSUMER_TYPE = { label:"균형잡힌", badge:"🧾", sub:"아직 뚜렷한 편향 없이 고르게 쓰고 있어요. 지금 밸런스를 유지해보는 건 어떨까요?" };
 
-/* ---- 공통 엘리먼트 캐시 ---- */
 const slidePanel   = document.getElementById("addPanel");
 const slideContent = document.getElementById("addPanelContent");
 
-/* 지출 기록 패널 (오버레이) */
 let recordPanel = null;
 let recordContent = null;
 
-/* ---- 유틸 ---- */
-/* =============== Swagger API 래퍼 ================== */
 const API = {
-  //=========================
-  /** 이번 달 지출 목록 불러오기 */
   async getMonthlyTx(year, month) {
     const res = await fetch(TX_LIST_URL);
     if (!res.ok) throw new Error(`getMonthlyTx HTTP ${res.status}`);
     const all = await res.json();
     return Array.isArray(all) ? all : [];
   }
-  //=======================
 ,
 
-  /** 이번 달 요약(총 지출, 예산 등) 불러오기 */
   async getMonthSummary(year, month) {
     const url = `${MONTH_SUMMARY_URL}?year=${year}&month=${String(month).padStart(2, "0")}`;
     const res = await fetch(url);
@@ -438,7 +394,6 @@ const API = {
     return res.json();
   },
 
-  /** 지출 한 건 저장 */
   async createTx(payload) {
     console.log("▶ POST /expenses payload =", payload);   // 디버그용
     const res = await fetch(TX_CREATE_URL, {
@@ -451,7 +406,6 @@ const API = {
     try {
       errText = await res.text();
     } catch (e) {
-      // 아무 것도 못 읽을 수도 있음
     }
     console.error("❌ createTx fail:", res.status, errText);
     throw new Error(`createTx HTTP ${res.status} ${errText}`);
@@ -459,22 +413,20 @@ const API = {
     return res.json();
   },
 
-  /** AI 리포트 질문 */
   async askReport(inputQuestion) {
     const bodyData = { start_date: "2025-11-01", end_date: "2025-12-31", question :inputQuestion}
     const res = await fetch(REPORT_CHAT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bodyData), // ⚠️ Swagger에서 body 스키마 확인
+      body: JSON.stringify(bodyData), 
     });
     if (!res.ok) throw new Error(`askReport HTTP ${res.status}`);
     return res.json();
   },
 
 
-  /** 지출 한 건 삭제 */
   async deleteTx(id) {
-    const url = `${TX_CREATE_URL}/${encodeURIComponent(id)}`; // /expenses/{id}
+    const url = `${TX_CREATE_URL}/${encodeURIComponent(id)}`; 
     const res = await fetch(url, { method: "DELETE" });
 
     if (!res.ok) {
@@ -482,13 +434,12 @@ const API = {
       try {
         errText = await res.text();
       } catch (e) {}
-      console.error("❌ deleteTx fail:", res.status, errText);
+      console.error("deleteTx fail:", res.status, errText);
       throw new Error(`deleteTx HTTP ${res.status} ${errText}`);
     }
     return true;
   }
 };
-/*-----------*/
 
 const clampText = (t, m) => t.length > m ? t.slice(0, m - 1) + "…" : t;
 const generateColors = (count) => {
@@ -521,7 +472,6 @@ const aggregateByCategory = (txList) => {
   return { labels, values, total };
 };
 
-/** ============== 서버에서 이번 달 지출 + 요약 불러와서 상태 갱신 ================*/
 async function loadMonthlyData(year, month) {
   try {
     const [txList, summary] = await Promise.all([
@@ -545,14 +495,12 @@ async function loadMonthlyData(year, month) {
         };
       });
 
-      // 전체 리스트는 ALL_TX에 저장
       ALL_TX = mapped;
 
-      // 최근 31일만 TX에 반영
       const end = new Date();
       end.setHours(23, 59, 59, 999);
       const start = new Date(end);
-      start.setDate(start.getDate() - 30); // 최근 31일
+      start.setDate(start.getDate() - 30); 
 
       TX = mapped.filter((t) => {
         if (!t.date) return false;
@@ -564,17 +512,16 @@ async function loadMonthlyData(year, month) {
         return d >= start && d <= end;
       });
 
-      // 최근 31일 안에 데이터가 하나도 없으면 전체 사용
+  
       if (!TX.length) {
         TX = mapped;
       }
     } 
     else {
-      console.log("⚠️ 서버에서 지출 내역이 비어 있어서 데모 TX 유지");
+      console.log("서버에서 지출 내역이 비어 있어서 데모 TX 유지");
       ALL_TX = TX.slice();
     }
 
-    // 예산 정보가 내려오면 BUDGET 업데이트
     if (summary && typeof summary.budget === "number") {
       BUDGET = summary.budget;
     }
@@ -585,7 +532,6 @@ async function loadMonthlyData(year, month) {
       ALL_TX = TX.slice();
     }
   } finally {
-    // 항상 UI 다시 그리기
     renderHomeCategoryChart();
     renderEmotionChart();
     renderEmotionChart2();
@@ -595,9 +541,6 @@ async function loadMonthlyData(year, month) {
 }
 
 
-/* ==========*/
-
-/* ---- 소비자 타입 표시 ---- */
 const updateConsumerType = (topCat) => {
   const info = CONSUMER_TYPES[topCat] || DEFAULT_CONSUMER_TYPE;
   const labelEl = document.getElementById("consumerLabel");
@@ -610,7 +553,7 @@ const updateConsumerType = (topCat) => {
   if (avatar){ avatar.classList.remove("pop"); void avatar.offsetWidth; avatar.classList.add("pop"); }
 };
 
-/* ---- 캘린더 ---- */
+
 let calendarOffset = 0;
 const getMonthInfo = (offset) => {
   const base = new Date(); base.setHours(0,0,0,0); base.setMonth(base.getMonth()+offset);

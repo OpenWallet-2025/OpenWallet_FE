@@ -1,6 +1,6 @@
 // Profile.js
+// 2025-12-07
 
-// ---------------- 공통 토글 버튼 ----------------
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".toggle-group").forEach((group) => {
     const buttons = group.querySelectorAll(".toggle-btn");
@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ---------------- 프로필 상수/유틸 ----------------
 const PROFILE_STORAGE_KEY = "ow_profile";
 const API_BASE_URL = "http://openwallet2025.com/api";
 
