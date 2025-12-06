@@ -1,4 +1,5 @@
 // Js/login.js
+// 2025-12-07
 function showToast(message) {
   const toast = document.getElementById("auth-toast");
   if (!toast) return;
