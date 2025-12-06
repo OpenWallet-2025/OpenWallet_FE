@@ -18,8 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-  
-        #깃허브 패키지 레지스터리 접근
       - name: Login to Docker Registry
         uses: docker/login-action@v3
         with:
@@ -30,7 +28,7 @@ jobs:
           
       - name: Build & Push Image
         run: |
-          OWNER="${GITHUB_REPOSITORY_OWNER,,}"   # lowercase 변환
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}" 
           docker build -t ghcr.io/${OWNER}/frontend:${GITHUB_SHA} .
           #ghcr.io: GitHub Container Registry의 엔드포인트, github.repository_owner: 조직 이름(openwallet22025), 
           # backend <- 직접 지정, steps.meta.outputs.image_tag: <generate docker image tag>에서 export한 commit 해쉬값(sha)
